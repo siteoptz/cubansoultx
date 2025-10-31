@@ -223,12 +223,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Initialize Menu Order System
 function initializeMenuOrderSystem() {
+    const packageRadios = document.querySelectorAll('input[name="package"]');
     const includedSidesCheckboxes = document.querySelectorAll('input[name="includedSides"]');
     const extraSidesCheckboxes = document.querySelectorAll('input[name="extraSides"]');
     const addonsCheckboxes = document.querySelectorAll('input[name="addons"]');
     const dessertsCheckboxes = document.querySelectorAll('input[name="desserts"]');
     const sidesCounter = document.getElementById('sidesCounter');
     const totalAmount = document.getElementById('totalAmount');
+
+    // Handle package selection
+    packageRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            updateOrderTotal();
+        });
+    });
 
     // Handle included sides (max 3)
     includedSidesCheckboxes.forEach(checkbox => {
@@ -278,11 +286,17 @@ function initializeMenuOrderSystem() {
 
 // Update order total
 function updateOrderTotal() {
+    const selectedPackage = document.querySelector('input[name="package"]:checked');
     const extraSidesCheckboxes = document.querySelectorAll('input[name="extraSides"]:checked');
     const dessertsCheckboxes = document.querySelectorAll('input[name="desserts"]:checked');
     const totalAmountElement = document.getElementById('totalAmount');
     
     let total = 0;
+
+    // Add package price if selected
+    if (selectedPackage) {
+        total += parseFloat(selectedPackage.dataset.price);
+    }
 
     // Calculate extra sides total
     extraSidesCheckboxes.forEach(checkbox => {
@@ -304,10 +318,20 @@ function updateOrderTotal() {
 
 // Get current order summary
 function getCurrentOrderSummary() {
+    const selectedPackage = document.querySelector('input[name="package"]:checked');
     const includedSides = [];
     const extraSides = [];
     const addons = [];
     const desserts = [];
+
+    // Get selected package
+    let packageInfo = null;
+    if (selectedPackage) {
+        packageInfo = {
+            type: selectedPackage.value,
+            price: parseFloat(selectedPackage.dataset.price)
+        };
+    }
 
     // Get selected included sides
     document.querySelectorAll('input[name="includedSides"]:checked').forEach(checkbox => {
@@ -336,6 +360,7 @@ function getCurrentOrderSummary() {
     });
 
     return {
+        package: packageInfo,
         includedSides,
         extraSides,
         addons,

@@ -105,127 +105,161 @@
             <p class="menu-subtitle">Authentic Cuban flavors made fresh daily</p>
             
             <div class="menu-order-system">
+                <!-- Package Selection -->
+                <div class="package-selection">
+                    <h3>Choose Your Package</h3>
+                    <div class="package-options">
+                        <label class="package-option">
+                            <input type="radio" name="package" value="15-people" data-price="210.00">
+                            <span class="radio-checkmark"></span>
+                            <div class="package-details">
+                                <h4>15 People Package</h4>
+                                <p class="package-price">$210.00</p>
+                                <p class="package-description">Perfect for small gatherings and intimate events</p>
+                            </div>
+                        </label>
+                        <label class="package-option">
+                            <input type="radio" name="package" value="25-people" data-price="350.00">
+                            <span class="radio-checkmark"></span>
+                            <div class="package-details">
+                                <h4>25 People Package</h4>
+                                <p class="package-price">$350.00</p>
+                                <p class="package-description">Ideal for larger parties and corporate events</p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
                 <!-- Order Total Display -->
                 <div class="order-total">
                     <h3>Order Total: $<span id="totalAmount">0.00</span></h3>
                 </div>
 
-                <!-- Main Entrees Section -->
-                <div class="menu-category">
-                    <h3>Main Entrees</h3>
-                    <p class="category-description">Choose your main entree and select 3 sides from the options below</p>
-                    
-                    <div class="sides-selection">
-                        <h4>Included Sides (Choose 3):</h4>
-                        <div class="sides-options">
-                            <label class="side-option">
-                                <input type="checkbox" name="includedSides" value="Congris Rice" data-max="3">
-                                <span class="checkmark"></span>
-                                Congris Rice
-                            </label>
-                            <label class="side-option">
-                                <input type="checkbox" name="includedSides" value="Fried Plantains" data-max="3">
-                                <span class="checkmark"></span>
-                                Fried Plantains
-                            </label>
-                            <label class="side-option">
-                                <input type="checkbox" name="includedSides" value="Sweet Plantains" data-max="3">
-                                <span class="checkmark"></span>
-                                Sweet Plantains
-                            </label>
-                            <label class="side-option">
-                                <input type="checkbox" name="includedSides" value="Yuca with Mojo Sauce" data-max="3">
-                                <span class="checkmark"></span>
-                                Yuca with Mojo Sauce
-                            </label>
-                            <label class="side-option">
-                                <input type="checkbox" name="includedSides" value="Salad" data-max="3">
-                                <span class="checkmark"></span>
-                                Salad
-                            </label>
+                <!-- Menu Grid -->
+                <div class="menu-grid">
+                    <!-- Left Column -->
+                    <div class="menu-column">
+                        <!-- Main Entrees Section -->
+                        <div class="menu-category">
+                            <h3>Main Entrees</h3>
+                            <p class="category-description">Choose your main entree and select 3 sides from the options below</p>
+                            
+                            <div class="sides-selection">
+                                <h4>Included Sides (Choose 3):</h4>
+                                <div class="sides-options">
+                                    <label class="side-option">
+                                        <input type="checkbox" name="includedSides" value="Congris Rice" data-max="3">
+                                        <span class="checkmark"></span>
+                                        Congris Rice
+                                    </label>
+                                    <label class="side-option">
+                                        <input type="checkbox" name="includedSides" value="Fried Plantains" data-max="3">
+                                        <span class="checkmark"></span>
+                                        Fried Plantains
+                                    </label>
+                                    <label class="side-option">
+                                        <input type="checkbox" name="includedSides" value="Sweet Plantains" data-max="3">
+                                        <span class="checkmark"></span>
+                                        Sweet Plantains
+                                    </label>
+                                    <label class="side-option">
+                                        <input type="checkbox" name="includedSides" value="Yuca with Mojo Sauce" data-max="3">
+                                        <span class="checkmark"></span>
+                                        Yuca with Mojo Sauce
+                                    </label>
+                                    <label class="side-option">
+                                        <input type="checkbox" name="includedSides" value="Salad" data-max="3">
+                                        <span class="checkmark"></span>
+                                        Salad
+                                    </label>
+                                </div>
+                                <p class="selection-counter">Selected: <span id="sidesCounter">0</span>/3</p>
+                            </div>
                         </div>
-                        <p class="selection-counter">Selected: <span id="sidesCounter">0</span>/3</p>
-                    </div>
-                </div>
 
-                <!-- Extra Sides Section -->
-                <div class="menu-category">
-                    <h3>Extra Sides ($3 USD per serving)</h3>
-                    <div class="extra-sides-options">
-                        <label class="side-option">
-                            <input type="checkbox" name="extraSides" value="Congris Rice" data-price="3.00">
-                            <span class="checkmark"></span>
-                            Congris Rice - $3.00
-                        </label>
-                        <label class="side-option">
-                            <input type="checkbox" name="extraSides" value="Fried Plantains" data-price="3.00">
-                            <span class="checkmark"></span>
-                            Fried Plantains - $3.00
-                        </label>
-                        <label class="side-option">
-                            <input type="checkbox" name="extraSides" value="Sweet Plantains" data-price="3.00">
-                            <span class="checkmark"></span>
-                            Sweet Plantains - $3.00
-                        </label>
-                        <label class="side-option">
-                            <input type="checkbox" name="extraSides" value="Yuca with Mojo Sauce" data-price="3.00">
-                            <span class="checkmark"></span>
-                            Yuca with Mojo Sauce - $3.00
-                        </label>
-                        <label class="side-option">
-                            <input type="checkbox" name="extraSides" value="Salad" data-price="3.00">
-                            <span class="checkmark"></span>
-                            Salad - $3.00
-                        </label>
-                        <label class="side-option">
-                            <input type="checkbox" name="extraSides" value="Cuban Tamale" data-price="4.59">
-                            <span class="checkmark"></span>
-                            Cuban Tamale - $4.59
-                        </label>
+                        <!-- Extra Sides Section -->
+                        <div class="menu-category">
+                            <h3>Extra Sides ($3 USD per serving)</h3>
+                            <div class="extra-sides-options">
+                                <label class="side-option">
+                                    <input type="checkbox" name="extraSides" value="Congris Rice" data-price="3.00">
+                                    <span class="checkmark"></span>
+                                    Congris Rice - $3.00
+                                </label>
+                                <label class="side-option">
+                                    <input type="checkbox" name="extraSides" value="Fried Plantains" data-price="3.00">
+                                    <span class="checkmark"></span>
+                                    Fried Plantains - $3.00
+                                </label>
+                                <label class="side-option">
+                                    <input type="checkbox" name="extraSides" value="Sweet Plantains" data-price="3.00">
+                                    <span class="checkmark"></span>
+                                    Sweet Plantains - $3.00
+                                </label>
+                                <label class="side-option">
+                                    <input type="checkbox" name="extraSides" value="Yuca with Mojo Sauce" data-price="3.00">
+                                    <span class="checkmark"></span>
+                                    Yuca with Mojo Sauce - $3.00
+                                </label>
+                                <label class="side-option">
+                                    <input type="checkbox" name="extraSides" value="Salad" data-price="3.00">
+                                    <span class="checkmark"></span>
+                                    Salad - $3.00
+                                </label>
+                                <label class="side-option">
+                                    <input type="checkbox" name="extraSides" value="Cuban Tamale" data-price="4.59">
+                                    <span class="checkmark"></span>
+                                    Cuban Tamale - $4.59
+                                </label>
+                            </div>
+                        </div>
                     </div>
-                </div>
 
-                <!-- Available Add-ons Section -->
-                <div class="menu-category">
-                    <h3>Available Add-ons (Free only if ordered by the customer)</h3>
-                    <div class="addons-options">
-                        <label class="side-option">
-                            <input type="checkbox" name="addons" value="Cutlery" data-price="0.00">
-                            <span class="checkmark"></span>
-                            Cutlery
-                        </label>
-                        <label class="side-option">
-                            <input type="checkbox" name="addons" value="Plates" data-price="0.00">
-                            <span class="checkmark"></span>
-                            Plates
-                        </label>
-                        <label class="side-option">
-                            <input type="checkbox" name="addons" value="Soul Fire" data-price="0.00">
-                            <span class="checkmark"></span>
-                            Soul Fire 🌶️ (The perfect blend of fire and flavor: grilled onion, habanero, lime, and cilantro, with the soul of Cuban Soul)
-                        </label>
-                    </div>
-                </div>
+                    <!-- Right Column -->
+                    <div class="menu-column">
+                        <!-- Available Add-ons Section -->
+                        <div class="menu-category">
+                            <h3>Available Add-ons (Free only if ordered by the customer)</h3>
+                            <div class="addons-options">
+                                <label class="side-option">
+                                    <input type="checkbox" name="addons" value="Cutlery" data-price="0.00">
+                                    <span class="checkmark"></span>
+                                    Cutlery
+                                </label>
+                                <label class="side-option">
+                                    <input type="checkbox" name="addons" value="Plates" data-price="0.00">
+                                    <span class="checkmark"></span>
+                                    Plates
+                                </label>
+                                <label class="side-option">
+                                    <input type="checkbox" name="addons" value="Soul Fire" data-price="0.00">
+                                    <span class="checkmark"></span>
+                                    Soul Fire 🌶️ (The perfect blend of fire and flavor: grilled onion, habanero, lime, and cilantro, with the soul of Cuban Soul)
+                                </label>
+                            </div>
+                        </div>
 
-                <!-- Desserts Section -->
-                <div class="menu-category">
-                    <h3>Desserts</h3>
-                    <div class="desserts-options">
-                        <label class="side-option">
-                            <input type="checkbox" name="desserts" value="Caramel Flan" data-price="40.00">
-                            <span class="checkmark"></span>
-                            Caramel Flan - $40.00
-                        </label>
-                        <label class="side-option">
-                            <input type="checkbox" name="desserts" value="Coconut Flan" data-price="45.00">
-                            <span class="checkmark"></span>
-                            Coconut Flan - $45.00
-                        </label>
-                        <label class="side-option">
-                            <input type="checkbox" name="desserts" value="Cheese Flan" data-price="45.00">
-                            <span class="checkmark"></span>
-                            Cheese Flan - $45.00
-                        </label>
+                        <!-- Desserts Section -->
+                        <div class="menu-category">
+                            <h3>Desserts</h3>
+                            <div class="desserts-options">
+                                <label class="side-option">
+                                    <input type="checkbox" name="desserts" value="Caramel Flan" data-price="40.00">
+                                    <span class="checkmark"></span>
+                                    Caramel Flan - $40.00
+                                </label>
+                                <label class="side-option">
+                                    <input type="checkbox" name="desserts" value="Coconut Flan" data-price="45.00">
+                                    <span class="checkmark"></span>
+                                    Coconut Flan - $45.00
+                                </label>
+                                <label class="side-option">
+                                    <input type="checkbox" name="desserts" value="Cheese Flan" data-price="45.00">
+                                    <span class="checkmark"></span>
+                                    Cheese Flan - $45.00
+                                </label>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
