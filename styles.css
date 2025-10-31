@@ -810,20 +810,19 @@ html {
 
 /* Menu Order System Styles */
 .menu-order-system {
+    position: relative;
+}
+
+.menu-main-content {
+    max-width: calc(100% - 280px);
     display: flex;
     flex-direction: column;
     gap: 30px;
 }
 
-.package-and-total-row {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 30px;
-    align-items: start;
-}
-
 .package-selection {
-    flex: 1;
+    width: 100%;
+    margin-bottom: 30px;
 }
 
 .package-options {
@@ -916,29 +915,33 @@ html {
 }
 
 .checkout-button {
-    background: #F2DAB2;
+    background: linear-gradient(45deg, #F2DAB2, #fff);
     color: #243746;
-    border: none;
-    padding: 15px 25px;
-    border-radius: 15px;
-    font-size: 1.2rem;
+    border: 2px solid #243746;
+    padding: 18px 30px;
+    border-radius: 20px;
+    font-size: 1.3rem;
     font-weight: bold;
     cursor: pointer;
     transition: all 0.3s ease;
     width: 100%;
     font-family: 'Bahnschrift', sans-serif;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 1.5px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    margin-top: 25px;
 }
 
 .checkout-button:hover {
-    background: #fff;
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(242, 218, 178, 0.4);
+    background: linear-gradient(45deg, #fff, #F2DAB2);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(242, 218, 178, 0.6);
+    border-color: #F2DAB2;
 }
 
 .checkout-button:active {
-    transform: translateY(0);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
 }
 
 .menu-row {
@@ -1022,37 +1025,52 @@ html {
     .total-amount {
         font-size: 2.2rem;
     }
+    
+    .menu-main-content {
+        max-width: calc(100% - 240px);
+    }
 }
 
 @media (max-width: 1024px) {
-    .package-and-total-row {
-        grid-template-columns: 1fr;
-        gap: 20px;
-        margin-right: 240px; /* Make space for fixed sidebar */
+    .menu-main-content {
+        max-width: calc(100% - 220px);
     }
     
     .menu-row {
         grid-template-columns: 1fr;
         gap: 20px;
     }
+    
+    .order-total-card {
+        min-width: 180px;
+        padding: 18px;
+    }
 }
 
 @media (max-width: 768px) {
-    .package-and-total-row {
-        margin-right: 0; /* Remove margin on mobile */
+    .menu-order-system {
+        position: static;
+    }
+    
+    .menu-main-content {
+        max-width: 100%;
+        order: 2;
     }
     
     .order-total-sidebar {
         position: relative;
         top: auto;
         right: auto;
-        order: -1; /* Move to top on mobile */
+        order: 1;
         margin-bottom: 20px;
+        width: 100%;
     }
     
     .order-total-card {
         min-width: auto;
         padding: 20px;
+        margin: 0 auto;
+        max-width: 400px;
     }
     
     .total-amount {
@@ -1061,8 +1079,9 @@ html {
     }
     
     .checkout-button {
-        padding: 12px 20px;
-        font-size: 1.1rem;
+        padding: 15px 25px;
+        font-size: 1.2rem;
+        margin-top: 20px;
     }
 }
 
