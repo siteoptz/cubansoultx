@@ -808,6 +808,223 @@ html {
     padding-right: 10px;
 }
 
+/* Menu Order System Styles */
+.menu-order-system {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+.package-and-total-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 30px;
+    align-items: start;
+}
+
+.package-selection {
+    flex: 1;
+}
+
+.package-options {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.package-option {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.package-option:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+.package-option input[type="radio"]:checked + .radio-checkmark + .package-details {
+    color: #243746;
+}
+
+.package-option input[type="radio"]:checked {
+    border-color: #243746;
+}
+
+.package-option input[type="radio"] {
+    width: 20px;
+    height: 20px;
+    margin: 0;
+}
+
+.package-details h4 {
+    font-size: 1.4rem;
+    color: #243746;
+    margin-bottom: 5px;
+}
+
+.package-price {
+    font-size: 1.6rem;
+    font-weight: bold;
+    color: #243746;
+    margin-bottom: 8px;
+}
+
+.package-description {
+    font-size: 1rem;
+    color: #666;
+}
+
+.order-total-sidebar {
+    position: sticky;
+    top: 120px;
+    height: fit-content;
+}
+
+.order-total-card {
+    background: #243746;
+    color: white;
+    padding: 25px;
+    border-radius: 20px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    min-width: 200px;
+}
+
+.order-total-card h3 {
+    font-family: 'Croissant One', cursive;
+    font-size: 1.4rem;
+    margin-bottom: 15px;
+    color: #F2DAB2;
+}
+
+.total-amount {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #F2DAB2;
+    font-family: 'Croissant One', cursive;
+}
+
+.menu-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+}
+
+.vertical-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.side-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 15px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+}
+
+.side-option:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateX(5px);
+}
+
+.side-option input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+}
+
+.side-option input[type="checkbox"]:checked + .checkmark + span,
+.side-option input[type="checkbox"]:checked ~ span {
+    font-weight: bold;
+    color: #243746;
+}
+
+.sides-selection h4 {
+    color: #243746;
+    font-size: 1.2rem;
+    margin-bottom: 15px;
+    border-bottom: 1px solid rgba(36, 55, 70, 0.3);
+    padding-bottom: 8px;
+}
+
+.selection-counter {
+    margin-top: 15px;
+    font-weight: bold;
+    color: #243746;
+    text-align: center;
+    padding: 8px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+}
+
+.category-description {
+    color: #666;
+    font-style: italic;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .package-and-total-row {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .order-total-sidebar {
+        position: static;
+        align-self: center;
+    }
+    
+    .menu-row {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+}
+
+@media (max-width: 768px) {
+    .package-options {
+        gap: 15px;
+    }
+    
+    .package-option {
+        padding: 15px;
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
+    }
+    
+    .order-total-card {
+        padding: 20px;
+        min-width: auto;
+    }
+    
+    .total-amount {
+        font-size: 2rem;
+    }
+    
+    .side-option {
+        padding: 10px 12px;
+    }
+    
+    .menu-order-system {
+        gap: 20px;
+    }
+}
+
 /* Form validation styles */
 .form-group input:invalid,
 .form-group select:invalid,
