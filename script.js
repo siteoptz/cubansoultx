@@ -216,7 +216,133 @@ document.addEventListener('DOMContentLoaded', function() {
             localStorage.setItem('cubanSoulNewsletterShown', 'true');
         }
     }, 10000);
+
+    // Menu Order System Functionality
+    initializeMenuOrderSystem();
 });
+
+// Initialize Menu Order System
+function initializeMenuOrderSystem() {
+    const includedSidesCheckboxes = document.querySelectorAll('input[name="includedSides"]');
+    const extraSidesCheckboxes = document.querySelectorAll('input[name="extraSides"]');
+    const addonsCheckboxes = document.querySelectorAll('input[name="addons"]');
+    const dessertsCheckboxes = document.querySelectorAll('input[name="desserts"]');
+    const sidesCounter = document.getElementById('sidesCounter');
+    const totalAmount = document.getElementById('totalAmount');
+
+    // Handle included sides (max 3)
+    includedSidesCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const checkedSides = document.querySelectorAll('input[name="includedSides"]:checked');
+            
+            // Update counter
+            if (sidesCounter) {
+                sidesCounter.textContent = checkedSides.length;
+            }
+
+            // Disable other checkboxes if 3 are selected
+            if (checkedSides.length >= 3) {
+                includedSidesCheckboxes.forEach(cb => {
+                    if (!cb.checked) {
+                        cb.disabled = true;
+                        cb.parentElement.style.opacity = '0.5';
+                    }
+                });
+            } else {
+                // Re-enable all checkboxes
+                includedSidesCheckboxes.forEach(cb => {
+                    cb.disabled = false;
+                    cb.parentElement.style.opacity = '1';
+                });
+            }
+        });
+    });
+
+    // Handle extra sides, add-ons, and desserts with price calculation
+    const allPaidCheckboxes = [...extraSidesCheckboxes, ...dessertsCheckboxes];
+    
+    allPaidCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            updateOrderTotal();
+        });
+    });
+
+    // Add-ons don't affect price but we still want to track them
+    addonsCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            // Add-ons are free, so no price calculation needed
+            console.log('Add-on selected:', this.value);
+        });
+    });
+}
+
+// Update order total
+function updateOrderTotal() {
+    const extraSidesCheckboxes = document.querySelectorAll('input[name="extraSides"]:checked');
+    const dessertsCheckboxes = document.querySelectorAll('input[name="desserts"]:checked');
+    const totalAmountElement = document.getElementById('totalAmount');
+    
+    let total = 0;
+
+    // Calculate extra sides total
+    extraSidesCheckboxes.forEach(checkbox => {
+        const price = parseFloat(checkbox.dataset.price);
+        total += price;
+    });
+
+    // Calculate desserts total
+    dessertsCheckboxes.forEach(checkbox => {
+        const price = parseFloat(checkbox.dataset.price);
+        total += price;
+    });
+
+    // Update the display
+    if (totalAmountElement) {
+        totalAmountElement.textContent = total.toFixed(2);
+    }
+}
+
+// Get current order summary
+function getCurrentOrderSummary() {
+    const includedSides = [];
+    const extraSides = [];
+    const addons = [];
+    const desserts = [];
+
+    // Get selected included sides
+    document.querySelectorAll('input[name="includedSides"]:checked').forEach(checkbox => {
+        includedSides.push(checkbox.value);
+    });
+
+    // Get selected extra sides
+    document.querySelectorAll('input[name="extraSides"]:checked').forEach(checkbox => {
+        extraSides.push({
+            item: checkbox.value,
+            price: parseFloat(checkbox.dataset.price)
+        });
+    });
+
+    // Get selected add-ons
+    document.querySelectorAll('input[name="addons"]:checked').forEach(checkbox => {
+        addons.push(checkbox.value);
+    });
+
+    // Get selected desserts
+    document.querySelectorAll('input[name="desserts"]:checked').forEach(checkbox => {
+        desserts.push({
+            item: checkbox.value,
+            price: parseFloat(checkbox.dataset.price)
+        });
+    });
+
+    return {
+        includedSides,
+        extraSides,
+        addons,
+        desserts,
+        total: parseFloat(document.getElementById('totalAmount').textContent)
+    };
+}
 
 // Create email body for order
 function createEmailBody(orderData) {
