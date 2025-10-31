@@ -219,6 +219,28 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Menu Order System Functionality
     initializeMenuOrderSystem();
+    
+    // Checkout button functionality
+    const checkoutBtn = document.getElementById('checkoutBtn');
+    if (checkoutBtn) {
+        checkoutBtn.addEventListener('click', function() {
+            const orderSummary = getCurrentOrderSummary();
+            if (orderSummary.total > 0) {
+                // Scroll to order form
+                const orderSection = document.getElementById('order');
+                if (orderSection) {
+                    orderSection.scrollIntoView({ behavior: 'smooth' });
+                    
+                    // Pre-fill order details in the form
+                    setTimeout(() => {
+                        prefillOrderForm(orderSummary);
+                    }, 500);
+                }
+            } else {
+                showCheckoutMessage('Please select a package and items before checkout.');
+            }
+        });
+    }
 });
 
 // Initialize Menu Order System
@@ -575,3 +597,85 @@ const subscriptionStyles = `
 const subscriptionStyleSheet = document.createElement('style');
 subscriptionStyleSheet.textContent = subscriptionStyles;
 document.head.appendChild(subscriptionStyleSheet);
+
+// Prefill order form with selected items
+function prefillOrderForm(orderSummary) {
+    const itemsTextarea = document.getElementById('items');
+    if (itemsTextarea && orderSummary) {
+        let orderText = '';
+        
+        // Add package information
+        if (orderSummary.package) {
+            orderText += `Package: ${orderSummary.package.type.replace('-', ' ')} - $${orderSummary.package.price}\n\n`;
+        }
+        
+        // Add included sides
+        if (orderSummary.includedSides.length > 0) {
+            orderText += `Included Sides (${orderSummary.includedSides.length}/3):\n`;
+            orderSummary.includedSides.forEach(side => {
+                orderText += `- ${side}\n`;
+            });
+            orderText += '\n';
+        }
+        
+        // Add extra sides
+        if (orderSummary.extraSides.length > 0) {
+            orderText += 'Extra Sides:\n';
+            orderSummary.extraSides.forEach(side => {
+                orderText += `- ${side.item} - $${side.price}\n`;
+            });
+            orderText += '\n';
+        }
+        
+        // Add add-ons
+        if (orderSummary.addons.length > 0) {
+            orderText += 'Add-ons (Free):\n';
+            orderSummary.addons.forEach(addon => {
+                orderText += `- ${addon}\n`;
+            });
+            orderText += '\n';
+        }
+        
+        // Add desserts
+        if (orderSummary.desserts.length > 0) {
+            orderText += 'Desserts:\n';
+            orderSummary.desserts.forEach(dessert => {
+                orderText += `- ${dessert.item} - $${dessert.price}\n`;
+            });
+            orderText += '\n';
+        }
+        
+        orderText += `Total: $${orderSummary.total.toFixed(2)}`;
+        
+        itemsTextarea.value = orderText;
+    }
+}
+
+// Show checkout message
+function showCheckoutMessage(message) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'checkout-message';
+    messageDiv.innerHTML = message;
+    messageDiv.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: #243746;
+        color: #F2DAB2;
+        padding: 20px 30px;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        z-index: 9999;
+        font-size: 1.1rem;
+        font-weight: bold;
+        text-align: center;
+        border: 2px solid #F2DAB2;
+    `;
+    
+    document.body.appendChild(messageDiv);
+    
+    setTimeout(() => {
+        messageDiv.remove();
+    }, 3000);
+}

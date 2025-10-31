@@ -882,8 +882,10 @@ html {
 }
 
 .order-total-sidebar {
-    position: sticky;
-    top: 120px;
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
     height: fit-content;
 }
 
@@ -892,9 +894,10 @@ html {
     color: white;
     padding: 25px;
     border-radius: 20px;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
     text-align: center;
-    min-width: 200px;
+    min-width: 220px;
+    border: 3px solid #F2DAB2;
 }
 
 .order-total-card h3 {
@@ -909,6 +912,33 @@ html {
     font-weight: bold;
     color: #F2DAB2;
     font-family: 'Croissant One', cursive;
+    margin-bottom: 20px;
+}
+
+.checkout-button {
+    background: #F2DAB2;
+    color: #243746;
+    border: none;
+    padding: 15px 25px;
+    border-radius: 15px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 100%;
+    font-family: 'Bahnschrift', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.checkout-button:hover {
+    background: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(242, 218, 178, 0.4);
+}
+
+.checkout-button:active {
+    transform: translateY(0);
 }
 
 .menu-row {
@@ -978,20 +1008,61 @@ html {
 }
 
 /* Responsive Design */
+@media (max-width: 1200px) {
+    .order-total-sidebar {
+        top: 15px;
+        right: 15px;
+    }
+    
+    .order-total-card {
+        min-width: 200px;
+        padding: 20px;
+    }
+    
+    .total-amount {
+        font-size: 2.2rem;
+    }
+}
+
 @media (max-width: 1024px) {
     .package-and-total-row {
         grid-template-columns: 1fr;
         gap: 20px;
-    }
-    
-    .order-total-sidebar {
-        position: static;
-        align-self: center;
+        margin-right: 240px; /* Make space for fixed sidebar */
     }
     
     .menu-row {
         grid-template-columns: 1fr;
         gap: 20px;
+    }
+}
+
+@media (max-width: 768px) {
+    .package-and-total-row {
+        margin-right: 0; /* Remove margin on mobile */
+    }
+    
+    .order-total-sidebar {
+        position: relative;
+        top: auto;
+        right: auto;
+        order: -1; /* Move to top on mobile */
+        margin-bottom: 20px;
+    }
+    
+    .order-total-card {
+        min-width: auto;
+        padding: 20px;
+    }
+    
+    .total-amount {
+        font-size: 2rem;
+        margin-bottom: 15px;
+    }
+    
+    .checkout-button {
+        padding: 12px 20px;
+        font-size: 1.1rem;
     }
 }
 
