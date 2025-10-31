@@ -810,11 +810,13 @@ html {
 
 /* Menu Order System Styles */
 .menu-order-system {
-    position: relative;
+    display: flex;
+    gap: 30px;
+    align-items: flex-start;
 }
 
 .menu-main-content {
-    max-width: calc(100% - 280px);
+    flex: 1;
     display: flex;
     flex-direction: column;
     gap: 30px;
@@ -881,11 +883,11 @@ html {
 }
 
 .order-total-sidebar {
-    position: fixed;
+    position: sticky;
     top: 20px;
-    right: 20px;
     z-index: 1000;
     height: fit-content;
+    align-self: flex-start;
 }
 
 .order-total-card {
@@ -895,7 +897,7 @@ html {
     border-radius: 20px;
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
     text-align: center;
-    min-width: 220px;
+    width: 250px;
     border: 3px solid #F2DAB2;
 }
 
@@ -1012,65 +1014,50 @@ html {
 
 /* Responsive Design */
 @media (max-width: 1200px) {
-    .order-total-sidebar {
-        top: 15px;
-        right: 15px;
-    }
-    
     .order-total-card {
-        min-width: 200px;
+        width: 220px;
         padding: 20px;
     }
     
     .total-amount {
         font-size: 2.2rem;
     }
-    
-    .menu-main-content {
-        max-width: calc(100% - 240px);
-    }
 }
 
 @media (max-width: 1024px) {
-    .menu-main-content {
-        max-width: calc(100% - 220px);
-    }
-    
     .menu-row {
         grid-template-columns: 1fr;
         gap: 20px;
     }
     
     .order-total-card {
-        min-width: 180px;
+        width: 200px;
         padding: 18px;
+    }
+    
+    .menu-order-system {
+        gap: 20px;
     }
 }
 
 @media (max-width: 768px) {
     .menu-order-system {
-        position: static;
-    }
-    
-    .menu-main-content {
-        max-width: 100%;
-        order: 2;
+        flex-direction: column;
+        gap: 20px;
     }
     
     .order-total-sidebar {
         position: relative;
-        top: auto;
-        right: auto;
-        order: 1;
-        margin-bottom: 20px;
-        width: 100%;
+        top: 0;
+        order: -1;
+        align-self: center;
     }
     
     .order-total-card {
-        min-width: auto;
+        width: 100%;
+        max-width: 400px;
         padding: 20px;
         margin: 0 auto;
-        max-width: 400px;
     }
     
     .total-amount {
