@@ -48,18 +48,21 @@ document.addEventListener('DOMContentLoaded', function() {
     // Payment form validation and processing
     initializePaymentValidation();
 
+    // Payment modal functionality
+    initializePaymentModal();
+
     // Form submission
     if (orderForm) {
         orderForm.addEventListener('submit', function(e) {
             e.preventDefault();
             
-            // Validate payment fields first
-            if (!validatePaymentFields()) {
+            // Validate order form first
+            if (!validateOrderForm()) {
                 return;
             }
             
-            // Process payment with Authorize.Net
-            processPayment();
+            // Open payment modal
+            openPaymentModal();
         });
     }
 
@@ -675,10 +678,176 @@ const authNetConfig = {
     environment: 'sandbox' // Change to 'production' for live transactions
 };
 
+// Initialize payment modal
+function initializePaymentModal() {
+    const modal = document.getElementById('paymentModal');
+    const openBtn = document.getElementById('openPaymentModal');
+    const closeBtn = document.querySelector('.payment-close');
+    const cancelBtn = document.querySelector('.cancel-payment');
+    const paymentForm = document.getElementById('paymentForm');
+
+    // Open payment modal from info button
+    if (openBtn) {
+        openBtn.addEventListener('click', function() {
+            openPaymentModal();
+        });
+    }
+
+    // Close modal events
+    if (closeBtn) {
+        closeBtn.addEventListener('click', closePaymentModal);
+    }
+    
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', closePaymentModal);
+    }
+
+    // Close modal when clicking outside
+    window.addEventListener('click', function(event) {
+        if (event.target === modal) {
+            closePaymentModal();
+        }
+    });
+
+    // Handle payment form submission
+    if (paymentForm) {
+        paymentForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Validate payment fields
+            if (!validateModalPaymentFields()) {
+                return;
+            }
+            
+            // Process payment
+            processModalPayment();
+        });
+    }
+}
+
+// Open payment modal
+function openPaymentModal() {
+    const modal = document.getElementById('paymentModal');
+    const orderSummary = getCurrentOrderSummary();
+    
+    // Check if user has selected items from menu
+    if (orderSummary.total <= 0) {
+        showPaymentError('Please select items from the menu before proceeding to payment');
+        return;
+    }
+    
+    // Populate order summary in modal
+    populateModalOrderSummary(orderSummary);
+    
+    // Show modal
+    modal.style.display = 'block';
+    document.body.style.overflow = 'hidden'; // Prevent background scrolling
+}
+
+// Close payment modal
+function closePaymentModal() {
+    const modal = document.getElementById('paymentModal');
+    modal.style.display = 'none';
+    document.body.style.overflow = 'auto'; // Restore scrolling
+    
+    // Clear payment form
+    document.getElementById('paymentForm').reset();
+}
+
+// Populate modal with order summary
+function populateModalOrderSummary(orderSummary) {
+    const summaryElement = document.getElementById('modalOrderSummary');
+    const totalElement = document.getElementById('modalTotalAmount');
+    
+    let summaryHTML = '';
+    
+    // Add package information
+    if (orderSummary.package) {
+        summaryHTML += `<div class="order-item"><strong>Package:</strong> ${orderSummary.package.type.replace('-', ' ')} - $${orderSummary.package.price}</div>`;
+    }
+    
+    // Add included sides
+    if (orderSummary.includedSides.length > 0) {
+        summaryHTML += `<div class="order-item"><strong>Included Sides (${orderSummary.includedSides.length}/3):</strong></div>`;
+        orderSummary.includedSides.forEach(side => {
+            summaryHTML += `<div class="order-subitem">• ${side}</div>`;
+        });
+    }
+    
+    // Add extra sides
+    if (orderSummary.extraSides.length > 0) {
+        summaryHTML += `<div class="order-item"><strong>Extra Sides:</strong></div>`;
+        orderSummary.extraSides.forEach(side => {
+            summaryHTML += `<div class="order-subitem">• ${side.item} - $${side.price}</div>`;
+        });
+    }
+    
+    // Add add-ons
+    if (orderSummary.addons.length > 0) {
+        summaryHTML += `<div class="order-item"><strong>Add-ons (Free):</strong></div>`;
+        orderSummary.addons.forEach(addon => {
+            summaryHTML += `<div class="order-subitem">• ${addon}</div>`;
+        });
+    }
+    
+    // Add desserts
+    if (orderSummary.desserts.length > 0) {
+        summaryHTML += `<div class="order-item"><strong>Desserts:</strong></div>`;
+        orderSummary.desserts.forEach(dessert => {
+            summaryHTML += `<div class="order-subitem">• ${dessert.item} - $${dessert.price}</div>`;
+        });
+    }
+    
+    summaryElement.innerHTML = summaryHTML;
+    totalElement.textContent = orderSummary.total.toFixed(2);
+}
+
+// Validate order form
+function validateOrderForm() {
+    const name = document.getElementById('name').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const orderType = document.getElementById('orderType').value;
+    const orderDate = document.getElementById('orderDate').value;
+    const orderTime = document.getElementById('orderTime').value;
+
+    if (!name) {
+        showPaymentError('Please enter your full name');
+        return false;
+    }
+    
+    if (!phone) {
+        showPaymentError('Please enter your phone number');
+        return false;
+    }
+    
+    if (!email) {
+        showPaymentError('Please enter your email address');
+        return false;
+    }
+    
+    if (!orderType) {
+        showPaymentError('Please select an order type');
+        return false;
+    }
+    
+    if (!orderDate) {
+        showPaymentError('Please select a preferred date');
+        return false;
+    }
+    
+    if (!orderTime) {
+        showPaymentError('Please select a preferred time');
+        return false;
+    }
+
+    return true;
+}
+
 // Initialize payment validation
 function initializePaymentValidation() {
-    // Card number formatting
-    const cardNumberInput = document.getElementById('cardNumber');
+    // Card number formatting for modal
+    const cardNumberInput = document.getElementById('modalCardNumber');
     if (cardNumberInput) {
         cardNumberInput.addEventListener('input', function(e) {
             let value = e.target.value.replace(/\s/g, '').replace(/[^0-9]/gi, '');
@@ -687,8 +856,8 @@ function initializePaymentValidation() {
         });
     }
 
-    // Expiry date formatting
-    const expiryInput = document.getElementById('expiryDate');
+    // Expiry date formatting for modal
+    const expiryInput = document.getElementById('modalExpiryDate');
     if (expiryInput) {
         expiryInput.addEventListener('input', function(e) {
             let value = e.target.value.replace(/\D/g, '');
@@ -699,8 +868,8 @@ function initializePaymentValidation() {
         });
     }
 
-    // CVV validation
-    const cvvInput = document.getElementById('cvv');
+    // CVV validation for modal
+    const cvvInput = document.getElementById('modalCvv');
     if (cvvInput) {
         cvvInput.addEventListener('input', function(e) {
             e.target.value = e.target.value.replace(/[^0-9]/g, '');
@@ -708,13 +877,13 @@ function initializePaymentValidation() {
     }
 }
 
-// Validate payment fields
-function validatePaymentFields() {
-    const cardNumber = document.getElementById('cardNumber').value.replace(/\s/g, '');
-    const expiryDate = document.getElementById('expiryDate').value;
-    const cvv = document.getElementById('cvv').value;
-    const cardholderName = document.getElementById('cardholderName').value;
-    const billingAddress = document.getElementById('billingAddress').value;
+// Validate modal payment fields
+function validateModalPaymentFields() {
+    const cardNumber = document.getElementById('modalCardNumber').value.replace(/\s/g, '');
+    const expiryDate = document.getElementById('modalExpiryDate').value;
+    const cvv = document.getElementById('modalCvv').value;
+    const cardholderName = document.getElementById('modalCardholderName').value;
+    const billingAddress = document.getElementById('modalBillingAddress').value;
 
     // Basic validation
     if (!cardNumber || cardNumber.length < 13 || cardNumber.length > 19) {
@@ -745,8 +914,8 @@ function validatePaymentFields() {
     return true;
 }
 
-// Process payment with Authorize.Net
-function processPayment() {
+// Process payment from modal
+function processModalPayment() {
     const orderSummary = getCurrentOrderSummary();
     const totalAmount = orderSummary.total;
 
@@ -756,15 +925,15 @@ function processPayment() {
     }
 
     // Show processing indicator
-    showPaymentProcessing();
+    showModalPaymentProcessing();
 
     // Prepare secure payment data
     const secureData = {
         cardData: {
-            cardNumber: document.getElementById('cardNumber').value.replace(/\s/g, ''),
-            month: document.getElementById('expiryDate').value.split('/')[0],
-            year: '20' + document.getElementById('expiryDate').value.split('/')[1],
-            cardCode: document.getElementById('cvv').value
+            cardNumber: document.getElementById('modalCardNumber').value.replace(/\s/g, ''),
+            month: document.getElementById('modalExpiryDate').value.split('/')[0],
+            year: '20' + document.getElementById('modalExpiryDate').value.split('/')[1],
+            cardCode: document.getElementById('modalCvv').value
         }
     };
 
@@ -783,10 +952,10 @@ function processPayment() {
                 errorMsg += response.messages.message[i].text + ' ';
             }
             showPaymentError('Payment processing error: ' + errorMsg);
-            hidePaymentProcessing();
+            hideModalPaymentProcessing();
         } else {
             // Payment nonce received successfully
-            submitOrderWithPayment(response.opaqueData, totalAmount);
+            submitModalOrderWithPayment(response.opaqueData, totalAmount);
         }
     }
 }
@@ -929,4 +1098,56 @@ function showPaymentSuccess(amount) {
     setTimeout(() => {
         successDiv.remove();
     }, 8000);
+}
+
+// Submit modal order with payment
+function submitModalOrderWithPayment(opaqueData, amount) {
+    // Collect all form data
+    const formData = new FormData(document.getElementById('orderForm'));
+    const orderData = {};
+    
+    for (let [key, value] of formData.entries()) {
+        orderData[key] = value;
+    }
+
+    // Add payment data
+    orderData.orderSummary = getCurrentOrderSummary();
+    orderData.paymentAmount = amount;
+    orderData.paymentToken = opaqueData.dataValue;
+    orderData.cardholderName = document.getElementById('modalCardholderName').value;
+
+    // Create order confirmation email
+    const subject = `Cuban Soul Order - Payment Processed - ${orderData.name}`;
+    const body = createPaymentEmailBody(orderData);
+    
+    // Submit to email (in production, this would go to your payment processing backend)
+    const mailtoLink = `mailto:orders@cubansoul.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    
+    try {
+        window.location.href = mailtoLink;
+        showPaymentSuccess(amount);
+        closePaymentModal();
+    } catch (error) {
+        showPhoneMessage();
+    }
+    
+    hideModalPaymentProcessing();
+}
+
+// Show modal payment processing indicator
+function showModalPaymentProcessing() {
+    const submitBtn = document.querySelector('.payment-submit-modal');
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '⏳ Processing Payment...';
+    }
+}
+
+// Hide modal payment processing indicator
+function hideModalPaymentProcessing() {
+    const submitBtn = document.querySelector('.payment-submit-modal');
+    if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '💳 Process Payment';
+    }
 }

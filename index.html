@@ -286,24 +286,27 @@
             <p class="order-subtitle">Ready to taste authentic Cuban cuisine? Place your order below!</p>
             
             <div class="order-content">
-                <div class="order-info">
-                    <h3>Order Information</h3>
+                <div class="payment-info-card">
+                    <h3>💳 Payment Information</h3>
                     <div class="info-item">
-                        <strong>📞 Phone Orders:</strong>
-                        <p>Call us at <a href="tel:8324105035">(832) 410-5035</a></p>
+                        <strong>🔒 Secure Processing:</strong>
+                        <p>All payments processed securely through Authorize.Net</p>
                     </div>
                     <div class="info-item">
-                        <strong>🕒 Hours:</strong>
-                        <p>Monday - Sunday: 11:00 AM - 8:00 PM</p>
+                        <strong>💳 Accepted Cards:</strong>
+                        <p>Visa, MasterCard, American Express, Discover</p>
                     </div>
                     <div class="info-item">
-                        <strong>🚚 Service Areas:</strong>
-                        <p>The Woodlands, Spring, Conroe, Tomball, and surrounding areas</p>
+                        <strong>🛡️ SSL Encrypted:</strong>
+                        <p>Your payment information is protected with bank-level security</p>
                     </div>
                     <div class="info-item">
-                        <strong>💰 Minimum Order:</strong>
-                        <p>$25 for delivery | No minimum for pickup</p>
+                        <strong>⚡ Instant Processing:</strong>
+                        <p>Immediate confirmation and receipt via email</p>
                     </div>
+                    <button type="button" id="openPaymentModal" class="btn btn-primary payment-info-btn">
+                        💳 Enter Payment Details
+                    </button>
                 </div>
 
                 <form class="order-form" id="orderForm">
@@ -350,15 +353,43 @@
                         <textarea id="specialInstructions" name="specialInstructions" rows="3" placeholder="Any dietary restrictions, special requests, or additional notes..."></textarea>
                     </div>
                     
-                    <!-- Payment Information Section -->
+                    <button type="submit" class="btn btn-primary">📋 Review Order & Pay</button>
+                    <p class="form-note">* Click to review your order details and complete payment securely.</p>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Payment Modal -->
+    <div id="paymentModal" class="payment-modal">
+        <div class="payment-modal-content">
+            <div class="payment-modal-header">
+                <h2>💳 Complete Your Payment</h2>
+                <span class="payment-close">&times;</span>
+            </div>
+            
+            <div class="payment-modal-body">
+                <!-- Order Summary -->
+                <div class="order-summary-section">
+                    <h3>📋 Order Summary</h3>
+                    <div id="modalOrderSummary" class="modal-order-details">
+                        <!-- Order details will be populated by JavaScript -->
+                    </div>
+                    <div class="modal-total">
+                        <strong>Total: $<span id="modalTotalAmount">0.00</span></strong>
+                    </div>
+                </div>
+
+                <!-- Payment Form -->
+                <form id="paymentForm" class="payment-form-modal">
                     <div class="payment-section">
                         <h3>💳 Payment Information</h3>
                         <p class="payment-note">Secure payment processing powered by Authorize.Net</p>
                         
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="cardNumber">Card Number *</label>
-                                <input type="text" id="cardNumber" name="cardNumber" placeholder="1234 5678 9012 3456" maxlength="19" required>
+                                <label for="modalCardNumber">Card Number *</label>
+                                <input type="text" id="modalCardNumber" name="cardNumber" placeholder="1234 5678 9012 3456" maxlength="19" required>
                                 <div class="card-icons">
                                     <span class="card-icon visa">💳</span>
                                     <span class="card-icon mastercard">💳</span>
@@ -370,23 +401,23 @@
                         
                         <div class="form-row">
                             <div class="form-group half-width">
-                                <label for="expiryDate">Expiry Date *</label>
-                                <input type="text" id="expiryDate" name="expiryDate" placeholder="MM/YY" maxlength="5" required>
+                                <label for="modalExpiryDate">Expiry Date *</label>
+                                <input type="text" id="modalExpiryDate" name="expiryDate" placeholder="MM/YY" maxlength="5" required>
                             </div>
                             <div class="form-group half-width">
-                                <label for="cvv">CVV *</label>
-                                <input type="text" id="cvv" name="cvv" placeholder="123" maxlength="4" required>
+                                <label for="modalCvv">CVV *</label>
+                                <input type="text" id="modalCvv" name="cvv" placeholder="123" maxlength="4" required>
                             </div>
                         </div>
                         
                         <div class="form-group">
-                            <label for="cardholderName">Cardholder Name *</label>
-                            <input type="text" id="cardholderName" name="cardholderName" placeholder="Name as it appears on card" required>
+                            <label for="modalCardholderName">Cardholder Name *</label>
+                            <input type="text" id="modalCardholderName" name="cardholderName" placeholder="Name as it appears on card" required>
                         </div>
                         
                         <div class="form-group">
-                            <label for="billingAddress">Billing Address *</label>
-                            <textarea id="billingAddress" name="billingAddress" rows="3" placeholder="Street Address, City, State, ZIP Code" required></textarea>
+                            <label for="modalBillingAddress">Billing Address *</label>
+                            <textarea id="modalBillingAddress" name="billingAddress" rows="3" placeholder="Street Address, City, State, ZIP Code" required></textarea>
                         </div>
                         
                         <div class="security-notice">
@@ -394,12 +425,14 @@
                         </div>
                     </div>
                     
-                    <button type="submit" class="btn btn-primary payment-submit">💳 Process Payment & Submit Order</button>
-                    <p class="form-note">* Your card will be charged immediately upon order submission. You will receive a confirmation email with your receipt.</p>
+                    <div class="payment-modal-actions">
+                        <button type="button" class="btn btn-secondary cancel-payment">Cancel</button>
+                        <button type="submit" class="btn btn-primary payment-submit-modal">💳 Process Payment</button>
+                    </div>
                 </form>
             </div>
         </div>
-    </section>
+    </div>
 
     <!-- Location Section -->
     <section id="contact" class="contact">
