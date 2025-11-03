@@ -1100,8 +1100,9 @@ function submitOrderWithPayment(opaqueData, amount) {
     const subject = `Cuban Soul Order - Payment Processed - ${orderData.name}`;
     const body = createPaymentEmailBody(orderData);
     
-    // Submit to email (in production, this would go to your payment processing backend)
-    const mailtoLink = `mailto:orders@cubansoul.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    // Submit to email with copy to antonio@siteoptz.com and customer
+    const customerEmail = orderData.email || document.getElementById('email').value;
+    const mailtoLink = `mailto:${customerEmail}?cc=orders@cubansoul.com,antonio@siteoptz.com&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     
     try {
         window.location.href = mailtoLink;
@@ -1285,8 +1286,9 @@ function submitModalOrderWithPayment(opaqueData, amount) {
     const subject = `Cuban Soul Order - Payment Processed - ${orderData.name}`;
     const body = createPaymentEmailBody(orderData);
     
-    // Submit to email with copy to antonio@siteoptz.com
-    const mailtoLink = `mailto:orders@cubansoul.com?cc=antonio@siteoptz.com&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    // Submit to email with copy to antonio@siteoptz.com and customer
+    const customerEmail = orderData.email || document.getElementById('email').value;
+    const mailtoLink = `mailto:${customerEmail}?cc=orders@cubansoul.com,antonio@siteoptz.com&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     
     try {
         window.location.href = mailtoLink;
