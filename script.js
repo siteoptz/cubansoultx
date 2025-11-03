@@ -51,6 +51,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Payment modal functionality
     initializePaymentModal();
 
+    // Monitor order form completion
+    initializeOrderFormMonitoring();
+
     // Form submission
     if (orderForm) {
         orderForm.addEventListener('submit', function(e) {
@@ -725,10 +728,81 @@ function initializePaymentModal() {
     }
 }
 
+// Initialize order form monitoring
+function initializeOrderFormMonitoring() {
+    const requiredFields = ['name', 'phone', 'email', 'orderType', 'orderDate', 'orderTime'];
+    const paymentInfoBtn = document.getElementById('openPaymentModal');
+    const reviewOrderBtn = document.querySelector('#orderForm button[type="submit"]');
+    
+    function checkFormCompletion() {
+        const orderSummary = getCurrentOrderSummary();
+        const formComplete = validateOrderFormSilent();
+        const hasMenuItems = orderSummary.total > 0;
+        
+        if (formComplete && hasMenuItems) {
+            // Enable payment buttons
+            if (paymentInfoBtn) {
+                paymentInfoBtn.disabled = false;
+                paymentInfoBtn.textContent = '💳 Enter Payment Details';
+            }
+            if (reviewOrderBtn) {
+                reviewOrderBtn.disabled = false;
+                reviewOrderBtn.textContent = '📋 Review Order & Pay';
+            }
+        } else {
+            // Disable payment buttons
+            if (paymentInfoBtn) {
+                paymentInfoBtn.disabled = true;
+                paymentInfoBtn.textContent = '💳 Complete Order Form First';
+            }
+            if (reviewOrderBtn) {
+                reviewOrderBtn.disabled = !formComplete;
+                reviewOrderBtn.textContent = formComplete ? '📋 Select Items from Menu' : '📋 Complete Order Form';
+            }
+        }
+    }
+    
+    // Monitor required fields
+    requiredFields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field) {
+            field.addEventListener('input', checkFormCompletion);
+            field.addEventListener('change', checkFormCompletion);
+        }
+    });
+    
+    // Monitor menu selections
+    document.addEventListener('change', function(e) {
+        if (e.target.matches('input[name="package"], input[name="extraSides"], input[name="desserts"]')) {
+            checkFormCompletion();
+        }
+    });
+    
+    // Initial check
+    checkFormCompletion();
+}
+
+// Validate order form silently (no error messages)
+function validateOrderFormSilent() {
+    const name = document.getElementById('name').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const orderType = document.getElementById('orderType').value;
+    const orderDate = document.getElementById('orderDate').value;
+    const orderTime = document.getElementById('orderTime').value;
+
+    return name && phone && email && orderType && orderDate && orderTime;
+}
+
 // Open payment modal
 function openPaymentModal() {
     const modal = document.getElementById('paymentModal');
     const orderSummary = getCurrentOrderSummary();
+    
+    // Validate order form
+    if (!validateOrderForm()) {
+        return;
+    }
     
     // Check if user has selected items from menu
     if (orderSummary.total <= 0) {
@@ -736,8 +810,9 @@ function openPaymentModal() {
         return;
     }
     
-    // Populate order summary in modal
+    // Populate order summary and customer info in modal
     populateModalOrderSummary(orderSummary);
+    populateModalCustomerInfo();
     
     // Show modal
     modal.style.display = 'block';
@@ -800,6 +875,37 @@ function populateModalOrderSummary(orderSummary) {
     
     summaryElement.innerHTML = summaryHTML;
     totalElement.textContent = orderSummary.total.toFixed(2);
+}
+
+// Populate modal with customer information
+function populateModalCustomerInfo() {
+    const customerInfoElement = document.getElementById('modalCustomerInfo');
+    
+    const name = document.getElementById('name').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const orderType = document.getElementById('orderType').value;
+    const address = document.getElementById('address').value.trim();
+    const orderDate = document.getElementById('orderDate').value;
+    const orderTime = document.getElementById('orderTime').value;
+    
+    let customerHTML = `
+        <div class="customer-item"><strong>Name:</strong> ${name}</div>
+        <div class="customer-item"><strong>Phone:</strong> ${phone}</div>
+        <div class="customer-item"><strong>Email:</strong> ${email}</div>
+        <div class="customer-item"><strong>Order Type:</strong> ${orderType}</div>
+    `;
+    
+    if (address) {
+        customerHTML += `<div class="customer-item"><strong>Address:</strong> ${address}</div>`;
+    }
+    
+    customerHTML += `
+        <div class="customer-item"><strong>Date:</strong> ${orderDate}</div>
+        <div class="customer-item"><strong>Time:</strong> ${orderTime}</div>
+    `;
+    
+    customerInfoElement.innerHTML = customerHTML;
 }
 
 // Validate order form
@@ -1063,6 +1169,52 @@ function submitOrderWithPayment(opaqueData, amount) {
 
 // Create payment confirmation email body
 function createPaymentEmailBody(orderData) {
+    const orderSummary = orderData.orderSummary;
+    let orderDetails = '';
+    
+    // Add package information
+    if (orderSummary.package) {
+        orderDetails += `Package: ${orderSummary.package.type.replace('-', ' ')} - $${orderSummary.package.price}\n\n`;
+    }
+    
+    // Add included sides
+    if (orderSummary.includedSides.length > 0) {
+        orderDetails += `Included Sides (${orderSummary.includedSides.length}/3):\n`;
+        orderSummary.includedSides.forEach(side => {
+            orderDetails += `- ${side}\n`;
+        });
+        orderDetails += '\n';
+    }
+    
+    // Add extra sides
+    if (orderSummary.extraSides.length > 0) {
+        orderDetails += 'Extra Sides:\n';
+        orderSummary.extraSides.forEach(side => {
+            orderDetails += `- ${side.item} - $${side.price}\n`;
+        });
+        orderDetails += '\n';
+    }
+    
+    // Add add-ons
+    if (orderSummary.addons.length > 0) {
+        orderDetails += 'Add-ons (Free):\n';
+        orderSummary.addons.forEach(addon => {
+            orderDetails += `- ${addon}\n`;
+        });
+        orderDetails += '\n';
+    }
+    
+    // Add desserts
+    if (orderSummary.desserts.length > 0) {
+        orderDetails += 'Desserts:\n';
+        orderSummary.desserts.forEach(dessert => {
+            orderDetails += `- ${dessert.item} - $${dessert.price}\n`;
+        });
+        orderDetails += '\n';
+    }
+    
+    orderDetails += `Total: $${orderSummary.total.toFixed(2)}`;
+    
     let emailBody = `
 PAYMENT PROCESSED - Cuban Soul Order
 
@@ -1082,7 +1234,7 @@ Payment Token: ${orderData.paymentToken}
 Cardholder: ${orderData.cardholderName}
 
 ORDER DETAILS:
-${orderData.items}
+${orderDetails}
 
 ${orderData.specialInstructions ? `Special Instructions:\n${orderData.specialInstructions}` : ''}
 
@@ -1187,13 +1339,18 @@ function submitModalOrderWithPayment(opaqueData, amount) {
     const subject = `Cuban Soul Order - Payment Processed - ${orderData.name}`;
     const body = createPaymentEmailBody(orderData);
     
-    // Submit to email (in production, this would go to your payment processing backend)
-    const mailtoLink = `mailto:orders@cubansoul.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    // Submit to email with copy to antonio@siteoptz.com
+    const mailtoLink = `mailto:orders@cubansoul.com?cc=antonio@siteoptz.com&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     
     try {
         window.location.href = mailtoLink;
         showPaymentSuccess(amount);
         closePaymentModal();
+        
+        // Reset order form after successful submission
+        setTimeout(() => {
+            resetOrderSystem();
+        }, 2000);
     } catch (error) {
         showPhoneMessage();
     }
@@ -1217,4 +1374,41 @@ function hideModalPaymentProcessing() {
         submitBtn.disabled = false;
         submitBtn.innerHTML = '💳 Process Payment';
     }
+}
+
+// Reset order system after successful submission
+function resetOrderSystem() {
+    // Reset order form
+    const orderForm = document.getElementById('orderForm');
+    if (orderForm) {
+        orderForm.reset();
+    }
+    
+    // Clear all menu selections
+    document.querySelectorAll('input[name="package"]').forEach(radio => radio.checked = false);
+    document.querySelectorAll('input[name="includedSides"]').forEach(checkbox => {
+        checkbox.checked = false;
+        checkbox.disabled = false;
+        checkbox.parentElement.style.opacity = '1';
+    });
+    document.querySelectorAll('input[name="extraSides"]').forEach(checkbox => checkbox.checked = false);
+    document.querySelectorAll('input[name="addons"]').forEach(checkbox => checkbox.checked = false);
+    document.querySelectorAll('input[name="desserts"]').forEach(checkbox => checkbox.checked = false);
+    
+    // Reset counters and totals
+    const sidesCounter = document.getElementById('sidesCounter');
+    const totalAmount = document.getElementById('totalAmount');
+    
+    if (sidesCounter) sidesCounter.textContent = '0';
+    if (totalAmount) totalAmount.textContent = '0.00';
+    
+    // Reset address visibility
+    const addressGroup = document.getElementById('addressGroup');
+    if (addressGroup) {
+        addressGroup.style.display = 'none';
+        document.getElementById('address').required = false;
+    }
+    
+    // Scroll to top of page
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
