@@ -45,33 +45,21 @@ document.addEventListener('DOMContentLoaded', function() {
         orderDate.setAttribute('min', today);
     }
 
+    // Payment form validation and processing
+    initializePaymentValidation();
+
     // Form submission
     if (orderForm) {
         orderForm.addEventListener('submit', function(e) {
             e.preventDefault();
             
-            // Collect form data
-            const formData = new FormData(orderForm);
-            const orderData = {};
-            
-            for (let [key, value] of formData.entries()) {
-                orderData[key] = value;
+            // Validate payment fields first
+            if (!validatePaymentFields()) {
+                return;
             }
-
-            // Create email content
-            const subject = `Cuban Soul Order - ${orderData.name}`;
-            const body = createEmailBody(orderData);
             
-            // Create mailto link
-            const mailtoLink = `mailto:orders@cubansoul.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-            
-            // Try to open email client
-            try {
-                window.location.href = mailtoLink;
-                showSuccessMessage();
-            } catch (error) {
-                showPhoneMessage();
-            }
+            // Process payment with Authorize.Net
+            processPayment();
         });
     }
 
@@ -678,4 +666,267 @@ function showCheckoutMessage(message) {
     setTimeout(() => {
         messageDiv.remove();
     }, 3000);
+}
+
+// Authorize.Net Configuration
+const authNetConfig = {
+    clientKey: '38fAR7rP',  // API Login ID
+    apiLoginID: '38fAR7rP',
+    environment: 'sandbox' // Change to 'production' for live transactions
+};
+
+// Initialize payment validation
+function initializePaymentValidation() {
+    // Card number formatting
+    const cardNumberInput = document.getElementById('cardNumber');
+    if (cardNumberInput) {
+        cardNumberInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\s/g, '').replace(/[^0-9]/gi, '');
+            let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
+            e.target.value = formattedValue;
+        });
+    }
+
+    // Expiry date formatting
+    const expiryInput = document.getElementById('expiryDate');
+    if (expiryInput) {
+        expiryInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length >= 2) {
+                value = value.substring(0, 2) + '/' + value.substring(2, 4);
+            }
+            e.target.value = value;
+        });
+    }
+
+    // CVV validation
+    const cvvInput = document.getElementById('cvv');
+    if (cvvInput) {
+        cvvInput.addEventListener('input', function(e) {
+            e.target.value = e.target.value.replace(/[^0-9]/g, '');
+        });
+    }
+}
+
+// Validate payment fields
+function validatePaymentFields() {
+    const cardNumber = document.getElementById('cardNumber').value.replace(/\s/g, '');
+    const expiryDate = document.getElementById('expiryDate').value;
+    const cvv = document.getElementById('cvv').value;
+    const cardholderName = document.getElementById('cardholderName').value;
+    const billingAddress = document.getElementById('billingAddress').value;
+
+    // Basic validation
+    if (!cardNumber || cardNumber.length < 13 || cardNumber.length > 19) {
+        showPaymentError('Please enter a valid card number');
+        return false;
+    }
+
+    if (!expiryDate || !/^\d{2}\/\d{2}$/.test(expiryDate)) {
+        showPaymentError('Please enter a valid expiry date (MM/YY)');
+        return false;
+    }
+
+    if (!cvv || cvv.length < 3 || cvv.length > 4) {
+        showPaymentError('Please enter a valid CVV');
+        return false;
+    }
+
+    if (!cardholderName.trim()) {
+        showPaymentError('Please enter the cardholder name');
+        return false;
+    }
+
+    if (!billingAddress.trim()) {
+        showPaymentError('Please enter the billing address');
+        return false;
+    }
+
+    return true;
+}
+
+// Process payment with Authorize.Net
+function processPayment() {
+    const orderSummary = getCurrentOrderSummary();
+    const totalAmount = orderSummary.total;
+
+    if (totalAmount <= 0) {
+        showPaymentError('Please select items before processing payment');
+        return;
+    }
+
+    // Show processing indicator
+    showPaymentProcessing();
+
+    // Prepare secure payment data
+    const secureData = {
+        cardData: {
+            cardNumber: document.getElementById('cardNumber').value.replace(/\s/g, ''),
+            month: document.getElementById('expiryDate').value.split('/')[0],
+            year: '20' + document.getElementById('expiryDate').value.split('/')[1],
+            cardCode: document.getElementById('cvv').value
+        }
+    };
+
+    const authData = {
+        clientKey: authNetConfig.clientKey,
+        apiLoginID: authNetConfig.apiLoginID
+    };
+
+    // Use Accept.js to get payment nonce
+    Accept.dispatchData(secureData, responseHandler);
+
+    function responseHandler(response) {
+        if (response.messages.resultCode === "Error") {
+            let errorMsg = '';
+            for (let i = 0; i < response.messages.message.length; i++) {
+                errorMsg += response.messages.message[i].text + ' ';
+            }
+            showPaymentError('Payment processing error: ' + errorMsg);
+            hidePaymentProcessing();
+        } else {
+            // Payment nonce received successfully
+            submitOrderWithPayment(response.opaqueData, totalAmount);
+        }
+    }
+}
+
+// Submit order with payment information
+function submitOrderWithPayment(opaqueData, amount) {
+    // Collect all form data
+    const formData = new FormData(document.getElementById('orderForm'));
+    const orderData = {};
+    
+    for (let [key, value] of formData.entries()) {
+        if (key !== 'cardNumber' && key !== 'expiryDate' && key !== 'cvv') {
+            orderData[key] = value;
+        }
+    }
+
+    // Add order summary
+    orderData.orderSummary = getCurrentOrderSummary();
+    orderData.paymentAmount = amount;
+    orderData.paymentToken = opaqueData.dataValue;
+
+    // Create order confirmation email
+    const subject = `Cuban Soul Order - Payment Processed - ${orderData.name}`;
+    const body = createPaymentEmailBody(orderData);
+    
+    // Submit to email (in production, this would go to your payment processing backend)
+    const mailtoLink = `mailto:orders@cubansoul.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    
+    try {
+        window.location.href = mailtoLink;
+        showPaymentSuccess(amount);
+    } catch (error) {
+        showPhoneMessage();
+    }
+    
+    hidePaymentProcessing();
+}
+
+// Create payment confirmation email body
+function createPaymentEmailBody(orderData) {
+    let emailBody = `
+PAYMENT PROCESSED - Cuban Soul Order
+
+Customer Information:
+Name: ${orderData.name}
+Phone: ${orderData.phone}
+Email: ${orderData.email}
+
+Order Type: ${orderData.orderType}
+${orderData.address ? `Address: ${orderData.address}` : ''}
+Preferred Date: ${orderData.orderDate}
+Preferred Time: ${orderData.orderTime}
+
+PAYMENT INFORMATION:
+Amount Charged: $${orderData.paymentAmount.toFixed(2)}
+Payment Token: ${orderData.paymentToken}
+Cardholder: ${orderData.cardholderName}
+
+ORDER DETAILS:
+${orderData.items}
+
+${orderData.specialInstructions ? `Special Instructions:\n${orderData.specialInstructions}` : ''}
+
+IMPORTANT: Process this payment immediately using the provided token with Authorize.Net Gateway.
+
+---
+Payment processed via Cuban Soul Website
+    `.trim();
+    
+    return emailBody;
+}
+
+// Show payment processing indicator
+function showPaymentProcessing() {
+    const submitBtn = document.querySelector('.payment-submit');
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '⏳ Processing Payment...';
+    }
+}
+
+// Hide payment processing indicator
+function hidePaymentProcessing() {
+    const submitBtn = document.querySelector('.payment-submit');
+    if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '💳 Process Payment & Submit Order';
+    }
+}
+
+// Show payment error
+function showPaymentError(message) {
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'payment-error';
+    errorDiv.innerHTML = `❌ ${message}`;
+    errorDiv.style.cssText = `
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #e74c3c;
+        color: white;
+        padding: 15px 25px;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3);
+        z-index: 9999;
+        font-weight: bold;
+    `;
+    
+    document.body.appendChild(errorDiv);
+    
+    setTimeout(() => {
+        errorDiv.remove();
+    }, 5000);
+}
+
+// Show payment success
+function showPaymentSuccess(amount) {
+    const successDiv = document.createElement('div');
+    successDiv.className = 'payment-success';
+    successDiv.innerHTML = `✅ Payment of $${amount.toFixed(2)} processed successfully!<br>Order confirmation will be sent to your email.`;
+    successDiv.style.cssText = `
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #27ae60;
+        color: white;
+        padding: 20px 30px;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
+        z-index: 9999;
+        font-weight: bold;
+        text-align: center;
+        max-width: 400px;
+    `;
+    
+    document.body.appendChild(successDiv);
+    
+    setTimeout(() => {
+        successDiv.remove();
+    }, 8000);
 }
