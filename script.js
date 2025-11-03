@@ -212,6 +212,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Menu Order System Functionality
     initializeMenuOrderSystem();
     
+    // Initialize order details field
+    setTimeout(() => {
+        updateOrderDetailsField();
+    }, 500);
+    
     // Checkout button functionality
     const checkoutBtn = document.getElementById('checkoutBtn');
     if (checkoutBtn) {
@@ -328,6 +333,15 @@ function updateOrderTotal() {
     if (totalAmountElement) {
         totalAmountElement.textContent = total.toFixed(2);
     }
+    
+    // Also update the order details field in the order form
+    updateOrderDetailsField();
+}
+
+// Update order details field in the order form
+function updateOrderDetailsField() {
+    const orderSummary = getCurrentOrderSummary();
+    prefillOrderForm(orderSummary);
 }
 
 // Get current order summary
@@ -596,7 +610,9 @@ document.head.appendChild(subscriptionStyleSheet);
 
 // Prefill order form with selected items
 function prefillOrderForm(orderSummary) {
+    console.log('prefillOrderForm called with:', orderSummary);
     const itemsTextarea = document.getElementById('items');
+    console.log('Items textarea found:', itemsTextarea);
     if (itemsTextarea && orderSummary) {
         let orderText = '';
         
@@ -644,6 +660,9 @@ function prefillOrderForm(orderSummary) {
         orderText += `Total: $${orderSummary.total.toFixed(2)}`;
         
         itemsTextarea.value = orderText;
+        console.log('Order details populated in textarea:', orderText);
+    } else {
+        console.log('Could not populate order details - textarea or orderSummary missing');
     }
 }
 
