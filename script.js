@@ -751,6 +751,12 @@ function openPaymentModal() {
     console.log('Modal element:', modal);
     const orderSummary = getCurrentOrderSummary();
     
+    // Check if a package (main entree) is selected
+    if (!orderSummary.package) {
+        showPaymentError('Please select a package (main entree) before proceeding to payment');
+        return;
+    }
+    
     // Populate order summary and customer info in modal
     populateModalOrderSummary(orderSummary);
     populateModalCustomerInfo();
@@ -972,6 +978,12 @@ function validateModalPaymentFields() {
 function processModalPayment() {
     const orderSummary = getCurrentOrderSummary();
     const totalAmount = orderSummary.total;
+
+    // Check if a package (main entree) is selected
+    if (!orderSummary.package) {
+        showPaymentError('Please select a package (main entree) before processing payment');
+        return;
+    }
 
     if (totalAmount <= 0) {
         showPaymentError('Please select items before processing payment');
@@ -1263,7 +1275,9 @@ function showPaymentSuccess(amount) {
     
     setTimeout(() => {
         successDiv.remove();
-    }, 8000);
+        // Refresh the page to return to original state
+        window.location.reload();
+    }, 5000);
 }
 
 // Submit modal order with payment
