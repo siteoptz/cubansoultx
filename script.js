@@ -62,12 +62,7 @@ document.addEventListener('DOMContentLoaded', function() {
         orderForm.addEventListener('submit', function(e) {
             e.preventDefault();
             
-            // Validate order form first
-            if (!validateOrderForm()) {
-                return;
-            }
-            
-            // Open payment modal
+            // Open payment modal directly without validation
             openPaymentModal();
         });
     }
@@ -749,17 +744,6 @@ function validateOrderFormSilent() {
 function openPaymentModal() {
     const modal = document.getElementById('paymentModal');
     const orderSummary = getCurrentOrderSummary();
-    
-    // Validate order form
-    if (!validateOrderForm()) {
-        return;
-    }
-    
-    // Check if user has selected items from menu
-    if (orderSummary.total <= 0) {
-        showPaymentError('Please select items from the menu before proceeding to payment');
-        return;
-    }
     
     // Populate order summary and customer info in modal
     populateModalOrderSummary(orderSummary);
