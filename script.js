@@ -753,7 +753,7 @@ function initializeOrderFormMonitoring() {
             }
             if (reviewOrderBtn) {
                 reviewOrderBtn.disabled = false;
-                reviewOrderBtn.textContent = '📋 Review Order & Pay';
+                reviewOrderBtn.textContent = '💳 Enter Payment Details';
             }
         } else {
             // Hide payment info card
