@@ -733,6 +733,7 @@ function initializeOrderFormMonitoring() {
     const requiredFields = ['name', 'phone', 'email', 'orderType', 'orderDate', 'orderTime'];
     const paymentInfoBtn = document.getElementById('openPaymentModal');
     const reviewOrderBtn = document.querySelector('#orderForm button[type="submit"]');
+    const paymentInfoCard = document.getElementById('paymentInfoCard');
     
     function checkFormCompletion() {
         const orderSummary = getCurrentOrderSummary();
@@ -740,6 +741,11 @@ function initializeOrderFormMonitoring() {
         const hasMenuItems = orderSummary.total > 0;
         
         if (formComplete && hasMenuItems) {
+            // Show payment info card
+            if (paymentInfoCard) {
+                paymentInfoCard.style.display = 'block';
+            }
+            
             // Enable payment buttons
             if (paymentInfoBtn) {
                 paymentInfoBtn.disabled = false;
@@ -750,6 +756,11 @@ function initializeOrderFormMonitoring() {
                 reviewOrderBtn.textContent = '📋 Review Order & Pay';
             }
         } else {
+            // Hide payment info card
+            if (paymentInfoCard) {
+                paymentInfoCard.style.display = 'none';
+            }
+            
             // Disable payment buttons
             if (paymentInfoBtn) {
                 paymentInfoBtn.disabled = true;
@@ -1407,6 +1418,12 @@ function resetOrderSystem() {
     if (addressGroup) {
         addressGroup.style.display = 'none';
         document.getElementById('address').required = false;
+    }
+    
+    // Hide payment info card
+    const paymentInfoCard = document.getElementById('paymentInfoCard');
+    if (paymentInfoCard) {
+        paymentInfoCard.style.display = 'none';
     }
     
     // Scroll to top of page
