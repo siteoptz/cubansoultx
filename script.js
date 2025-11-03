@@ -690,9 +690,13 @@ function initializePaymentModal() {
 
     // Open payment modal from info button
     if (openBtn) {
+        console.log('Payment button found, adding event listener');
         openBtn.addEventListener('click', function() {
+            console.log('Payment button clicked');
             openPaymentModal();
         });
+    } else {
+        console.log('Payment button NOT found');
     }
 
     // Close modal events
@@ -742,7 +746,9 @@ function validateOrderFormSilent() {
 
 // Open payment modal
 function openPaymentModal() {
+    console.log('openPaymentModal called');
     const modal = document.getElementById('paymentModal');
+    console.log('Modal element:', modal);
     const orderSummary = getCurrentOrderSummary();
     
     // Populate order summary and customer info in modal
@@ -752,6 +758,7 @@ function openPaymentModal() {
     // Show modal
     modal.style.display = 'block';
     document.body.style.overflow = 'hidden'; // Prevent background scrolling
+    console.log('Modal should now be visible');
 }
 
 // Close payment modal
