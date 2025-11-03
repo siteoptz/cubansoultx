@@ -332,6 +332,7 @@ function updateOrderTotal() {
 
 // Get current order summary
 function getCurrentOrderSummary() {
+    console.log('Getting current order summary...');
     const selectedPackage = document.querySelector('input[name="package"]:checked');
     const includedSides = [];
     const extraSides = [];
@@ -373,7 +374,7 @@ function getCurrentOrderSummary() {
         });
     });
 
-    return {
+    const orderSummary = {
         package: packageInfo,
         includedSides,
         extraSides,
@@ -381,6 +382,9 @@ function getCurrentOrderSummary() {
         desserts,
         total: parseFloat(document.getElementById('totalAmount').textContent)
     };
+    
+    console.log('Order summary created:', orderSummary);
+    return orderSummary;
 }
 
 // Create email body for order
@@ -1117,6 +1121,7 @@ function submitOrderWithPayment(opaqueData, amount) {
 
     // Add order summary
     orderData.orderSummary = getCurrentOrderSummary();
+    console.log('Order summary captured for email:', orderData.orderSummary);
     orderData.paymentAmount = amount;
     orderData.paymentToken = opaqueData.dataValue;
 
@@ -1141,6 +1146,7 @@ function submitOrderWithPayment(opaqueData, amount) {
 // Create payment confirmation email body
 function createPaymentEmailBody(orderData) {
     const orderSummary = orderData.orderSummary;
+    console.log('Creating email body with order summary:', orderSummary);
     let orderDetails = '';
     
     // Add package information
@@ -1304,6 +1310,7 @@ function submitModalOrderWithPayment(opaqueData, amount) {
 
     // Add payment data
     orderData.orderSummary = getCurrentOrderSummary();
+    console.log('Modal order summary captured for email:', orderData.orderSummary);
     orderData.paymentAmount = amount;
     orderData.paymentToken = opaqueData.dataValue;
     orderData.cardholderName = document.getElementById('modalCardholderName').value;
