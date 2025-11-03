@@ -51,8 +51,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Payment modal functionality
     initializePaymentModal();
 
-    // Monitor order form completion
-    initializeOrderFormMonitoring();
+    // Simple payment info card display
+    const paymentInfoCard = document.getElementById('paymentInfoCard');
+    if (paymentInfoCard) {
+        paymentInfoCard.style.display = 'block'; // Always show payment info
+    }
 
     // Form submission
     if (orderForm) {
@@ -729,77 +732,6 @@ function initializePaymentModal() {
     }
 }
 
-// Initialize order form monitoring
-function initializeOrderFormMonitoring() {
-    const requiredFields = ['name', 'phone', 'email', 'orderType', 'orderDate', 'orderTime'];
-    const paymentInfoBtn = document.getElementById('openPaymentModal');
-    const reviewOrderBtn = document.querySelector('#orderForm button[type="submit"]');
-    const paymentInfoCard = document.getElementById('paymentInfoCard');
-    
-    function checkFormCompletion() {
-        const orderSummary = getCurrentOrderSummary();
-        const formComplete = validateOrderFormSilent();
-        const hasMenuItems = orderSummary.total > 0;
-        
-        if (formComplete) {
-            // Show payment info card when form is complete
-            if (paymentInfoCard) {
-                paymentInfoCard.style.display = 'block';
-            }
-            
-            // Enable payment button when form is complete
-            if (paymentInfoBtn) {
-                paymentInfoBtn.disabled = false;
-                paymentInfoBtn.textContent = '💳 Enter Payment Details';
-            }
-            
-            // Handle review order button based on menu items
-            if (reviewOrderBtn) {
-                if (hasMenuItems) {
-                    reviewOrderBtn.disabled = false;
-                    reviewOrderBtn.textContent = '💳 Enter Payment Details';
-                } else {
-                    reviewOrderBtn.disabled = false;
-                    reviewOrderBtn.textContent = '📋 Select Items from Menu';
-                }
-            }
-        } else {
-            // Hide payment info card when form is not complete
-            if (paymentInfoCard) {
-                paymentInfoCard.style.display = 'none';
-            }
-            
-            // Disable payment buttons when form is not complete
-            if (paymentInfoBtn) {
-                paymentInfoBtn.disabled = true;
-                paymentInfoBtn.textContent = '💳 Complete Order Form First';
-            }
-            if (reviewOrderBtn) {
-                reviewOrderBtn.disabled = true;
-                reviewOrderBtn.textContent = '📋 Complete Order Form';
-            }
-        }
-    }
-    
-    // Monitor required fields
-    requiredFields.forEach(fieldId => {
-        const field = document.getElementById(fieldId);
-        if (field) {
-            field.addEventListener('input', checkFormCompletion);
-            field.addEventListener('change', checkFormCompletion);
-        }
-    });
-    
-    // Monitor menu selections
-    document.addEventListener('change', function(e) {
-        if (e.target.matches('input[name="package"], input[name="extraSides"], input[name="desserts"]')) {
-            checkFormCompletion();
-        }
-    });
-    
-    // Initial check
-    checkFormCompletion();
-}
 
 // Validate order form silently (no error messages)
 function validateOrderFormSilent() {
