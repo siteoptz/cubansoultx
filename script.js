@@ -757,6 +757,12 @@ function openPaymentModal() {
         return;
     }
     
+    // Check if exactly 3 included sides are selected
+    if (orderSummary.includedSides.length !== 3) {
+        showPaymentError('Please select exactly 3 included sides from the main entrees section');
+        return;
+    }
+    
     // Populate order summary and customer info in modal
     populateModalOrderSummary(orderSummary);
     populateModalCustomerInfo();
@@ -982,6 +988,12 @@ function processModalPayment() {
     // Check if a package (main entree) is selected
     if (!orderSummary.package) {
         showPaymentError('Please select a package (main entree) before processing payment');
+        return;
+    }
+    
+    // Check if exactly 3 included sides are selected
+    if (orderSummary.includedSides.length !== 3) {
+        showPaymentError('Please select exactly 3 included sides from the main entrees section');
         return;
     }
 
