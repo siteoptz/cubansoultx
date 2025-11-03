@@ -823,6 +823,12 @@ function populateModalOrderSummary(orderSummary) {
 function populateModalCustomerInfo() {
     const customerInfoElement = document.getElementById('modalCustomerInfo');
     
+    // Only proceed if the element exists
+    if (!customerInfoElement) {
+        console.log('modalCustomerInfo element not found - skipping customer info population');
+        return;
+    }
+    
     const name = document.getElementById('name').value.trim();
     const phone = document.getElementById('phone').value.trim();
     const email = document.getElementById('email').value.trim();
