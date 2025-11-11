@@ -1071,41 +1071,85 @@ function validateModalPaymentFields() {
 
 // Process payment from modal
 function processModalPayment() {
+    console.log('=== PAYMENT PROCESSING STARTED ===');
+    
     const orderSummary = getCurrentOrderSummary();
+    console.log('Order summary:', orderSummary);
     const totalAmount = orderSummary.total;
+    console.log('Total amount:', totalAmount);
 
     // Check if a package (main entree) is selected
     if (!orderSummary.package) {
+        console.log('ERROR: No package selected');
         showPaymentError('Please select a package (main entree) before processing payment');
         return;
     }
     
     // Check if exactly 3 included sides are selected
     if (orderSummary.includedSides.length !== 3) {
+        console.log('ERROR: Included sides count:', orderSummary.includedSides.length);
         showPaymentError('Please select exactly 3 included sides from the main entrees section');
         return;
     }
 
     if (totalAmount <= 0) {
+        console.log('ERROR: Total amount is 0 or negative');
         showPaymentError('Please select items before processing payment');
         return;
     }
 
+    console.log('Validation passed, showing processing indicator...');
+    
     // Show processing indicator
     showModalPaymentProcessing();
+    
+    console.log('Processing indicator shown, checking Accept.js...');
 
     // Check if Accept.js is loaded
     if (typeof Accept === 'undefined') {
-        console.error('Accept.js not loaded');
+        console.error('ERROR: Accept.js not loaded');
         showPaymentError('Payment system not ready. Please try again in a moment.');
         hideModalPaymentProcessing();
         return;
     }
+    console.log('Accept.js is loaded successfully');
+
+    // TEMPORARY BYPASS FOR TESTING - Remove this after debugging
+    if (window.location.search.includes('bypass=true')) {
+        console.log('BYPASSING PAYMENT FOR TESTING');
+        setTimeout(() => {
+            const mockOrderData = {
+                orderSummary: orderSummary,
+                paymentAmount: totalAmount,
+                name: document.getElementById('name').value || 'Test Customer',
+                email: document.getElementById('email').value || 'test@example.com',
+                phone: document.getElementById('phone').value || '(555) 123-4567',
+                orderType: document.getElementById('orderType').value || 'pickup',
+                orderDate: document.getElementById('orderDate').value || '2024-01-01',
+                orderTime: document.getElementById('orderTime').value || '12:00',
+                cardholderName: 'Test Cardholder',
+                paymentToken: 'test_token_' + Date.now()
+            };
+            
+            showPaymentSuccess(totalAmount);
+            closePaymentModal();
+            setTimeout(() => {
+                resetOrderSystem();
+            }, 2000);
+            hideModalPaymentProcessing();
+        }, 2000);
+        return;
+    }
 
     // Get form values
+    console.log('Getting form values...');
     const cardNumber = document.getElementById('modalCardNumber').value.replace(/\s/g, '');
     const expiryDate = document.getElementById('modalExpiryDate').value;
     const cvv = document.getElementById('modalCvv').value;
+    
+    console.log('Card number length:', cardNumber.length);
+    console.log('Expiry date:', expiryDate);
+    console.log('CVV length:', cvv.length);
 
     // Validate expiry date format
     if (!expiryDate || !expiryDate.includes('/')) {
@@ -1156,15 +1200,18 @@ function processModalPayment() {
         
         // Set timeout for Accept.js response
         const paymentTimeout = setTimeout(() => {
-            console.error('Payment processing timeout');
+            console.error('TIMEOUT: Payment processing timeout after 30 seconds');
             showPaymentError('Payment processing is taking too long. Please try again.');
             hideModalPaymentProcessing();
         }, 30000); // 30 second timeout
         
+        console.log('About to call Accept.dispatchData...');
         Accept.dispatchData(secureData, function(response) {
+            console.log('Accept.js response received!');
             clearTimeout(paymentTimeout);
             responseHandler(response);
         });
+        console.log('Accept.dispatchData called, waiting for response...');
     } catch (error) {
         console.error('Accept.js error:', error);
         showPaymentError('Payment processing error. Please check your card information and try again.');
@@ -1172,20 +1219,51 @@ function processModalPayment() {
     }
 
     function responseHandler(response) {
-        console.log('Accept.js response:', response);
+        console.log('=== RESPONSE HANDLER CALLED ===');
+        console.log('Full Accept.js response:', response);
+        
+        if (!response) {
+            console.error('ERROR: No response received from Accept.js');
+            showPaymentError('Payment processing error: No response received');
+            hideModalPaymentProcessing();
+            return;
+        }
+        
+        if (!response.messages) {
+            console.error('ERROR: No messages in response');
+            showPaymentError('Payment processing error: Invalid response');
+            hideModalPaymentProcessing();
+            return;
+        }
+        
+        console.log('Response result code:', response.messages.resultCode);
         
         if (response.messages.resultCode === "Error") {
+            console.error('PAYMENT ERROR DETECTED');
             let errorMsg = '';
-            for (let i = 0; i < response.messages.message.length; i++) {
-                errorMsg += response.messages.message[i].text + ' ';
+            if (response.messages.message && response.messages.message.length > 0) {
+                for (let i = 0; i < response.messages.message.length; i++) {
+                    errorMsg += response.messages.message[i].text + ' ';
+                    console.error('Error message', i + ':', response.messages.message[i].text);
+                }
+            } else {
+                errorMsg = 'Unknown payment error';
             }
-            console.error('Payment error:', errorMsg);
+            console.error('Final error message:', errorMsg);
             showPaymentError('Payment processing error: ' + errorMsg);
             hideModalPaymentProcessing();
         } else {
             // Payment nonce received successfully
-            console.log('Payment token received:', response.opaqueData.dataValue);
-            submitModalOrderWithPayment(response.opaqueData, totalAmount);
+            console.log('PAYMENT SUCCESS!');
+            if (response.opaqueData && response.opaqueData.dataValue) {
+                console.log('Payment token received:', response.opaqueData.dataValue);
+                console.log('About to call submitModalOrderWithPayment...');
+                submitModalOrderWithPayment(response.opaqueData, totalAmount);
+            } else {
+                console.error('ERROR: No opaque data in response');
+                showPaymentError('Payment processing error: No payment token received');
+                hideModalPaymentProcessing();
+            }
         }
     }
 }
@@ -1383,23 +1461,39 @@ function showPaymentSuccess(amount) {
 
 // Submit modal order with payment using FormSubmit
 function submitModalOrderWithPayment(opaqueData, amount) {
-    // Collect all form data
-    const formData = new FormData(document.getElementById('orderForm'));
-    const orderData = {};
+    console.log('=== SUBMIT MODAL ORDER WITH PAYMENT STARTED ===');
+    console.log('Opaque data:', opaqueData);
+    console.log('Amount:', amount);
     
-    for (let [key, value] of formData.entries()) {
-        orderData[key] = value;
+    try {
+        // Collect all form data
+        console.log('Collecting form data...');
+        const formData = new FormData(document.getElementById('orderForm'));
+        const orderData = {};
+        
+        for (let [key, value] of formData.entries()) {
+            orderData[key] = value;
+        }
+        console.log('Form data collected:', orderData);
+
+        // Add payment data
+        console.log('Adding payment data...');
+        orderData.orderSummary = getCurrentOrderSummary();
+        console.log('Modal order summary captured for email:', orderData.orderSummary);
+        orderData.paymentAmount = amount;
+        orderData.paymentToken = opaqueData.dataValue;
+        orderData.cardholderName = document.getElementById('modalCardholderName').value;
+        
+        console.log('Complete order data prepared:', orderData);
+
+        // Send order confirmation email via FormSubmit
+        console.log('About to call sendOrderConfirmationEmail...');
+        sendOrderConfirmationEmail(orderData, true);
+    } catch (error) {
+        console.error('ERROR in submitModalOrderWithPayment:', error);
+        showPaymentError('Error processing order: ' + error.message);
+        hideModalPaymentProcessing();
     }
-
-    // Add payment data
-    orderData.orderSummary = getCurrentOrderSummary();
-    console.log('Modal order summary captured for email:', orderData.orderSummary);
-    orderData.paymentAmount = amount;
-    orderData.paymentToken = opaqueData.dataValue;
-    orderData.cardholderName = document.getElementById('modalCardholderName').value;
-
-    // Send order confirmation email via FormSubmit
-    sendOrderConfirmationEmail(orderData, true);
 }
 
 // Send order confirmation email using FormSubmit
