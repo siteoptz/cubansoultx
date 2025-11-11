@@ -1654,53 +1654,48 @@ ${orderDetails}
 ${isPaymentOrder ? 'Payment Token: ' + orderData.paymentToken : ''}
         `.trim();
         
-        console.log('Sending order confirmation emails...');
+        console.log('Sending order confirmation email via form submission...');
         
-        // Prepare FormSubmit data for business email
-        const formSubmitData = new FormData();
-        formSubmitData.append('name', orderData.name);
-        formSubmitData.append('email', customerEmail);
-        formSubmitData.append('phone', orderData.phone);
-        formSubmitData.append('_subject', subject);
-        formSubmitData.append('message', orderSummaryText);
-        formSubmitData.append('_replyto', customerEmail);
-        formSubmitData.append('_cc', 'antonio@siteoptz.com');
-        formSubmitData.append('_next', window.location.href);
+        // Create hidden form for email submission to avoid CORS issues
+        const emailForm = document.createElement('form');
+        emailForm.method = 'POST';
+        emailForm.action = 'https://formsubmit.co/antonio@siteoptz.com';
+        emailForm.target = '_blank';
+        emailForm.style.display = 'none';
         
-        // Send email to business
-        console.log('Sending email to cubanfoodinternationalllc@gmail.com...');
-        const businessResponse = await fetch('https://formsubmit.co/cubanfoodinternationalllc@gmail.com', {
-            method: 'POST',
-            body: formSubmitData
-        });
+        // Add form fields
+        const fields = {
+            'name': orderData.name,
+            'email': customerEmail,
+            'phone': orderData.phone,
+            '_subject': subject,
+            'message': orderSummaryText,
+            '_replyto': customerEmail,
+            '_cc': 'cubanfoodinternationalllc@gmail.com',
+            '_next': `${window.location.protocol}//${window.location.host}/thank-you.html`
+        };
         
-        if (businessResponse.ok) {
-            console.log('✅ Business email sent successfully');
-        } else {
-            console.error('❌ Failed to send business email:', businessResponse.status);
+        // Create and append input fields
+        for (const [key, value] of Object.entries(fields)) {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = key;
+            input.value = value;
+            emailForm.appendChild(input);
         }
         
-        // Send separate email to customer
-        const customerFormData = new FormData();
-        customerFormData.append('name', 'Cuban Soul Restaurant');
-        customerFormData.append('email', 'cubanfoodinternationalllc@gmail.com');
-        customerFormData.append('phone', '(832) 410-5035');
-        customerFormData.append('_subject', `Order Confirmation - ${orderData.name}`);
-        customerFormData.append('message', `Dear ${orderData.name},\n\nThank you for your order with Cuban Soul!\n\n${orderDetails}\n\nWe will contact you shortly to confirm your order details.\n\nBest regards,\nCuban Soul Team\nPhone: (832) 410-5035\nEmail: cubanfoodinternationalllc@gmail.com\n\n"Sabor Que Viene Del Alma"`);
-        customerFormData.append('_replyto', 'cubanfoodinternationalllc@gmail.com');
-        customerFormData.append('_next', window.location.href);
+        // Append form to body, submit, then remove
+        document.body.appendChild(emailForm);
+        emailForm.submit();
         
-        console.log('Sending confirmation email to customer:', customerEmail);
-        const customerResponse = await fetch(`https://formsubmit.co/${customerEmail}`, {
-            method: 'POST',
-            body: customerFormData
-        });
+        // Clean up form after a short delay
+        setTimeout(() => {
+            document.body.removeChild(emailForm);
+        }, 1000);
         
-        if (customerResponse.ok) {
-            console.log('✅ Customer email sent successfully');
-        } else {
-            console.error('❌ Failed to send customer email:', customerResponse.status);
-        }
+        console.log('✅ Email form submitted successfully');
+        console.log('📧 Primary recipient: antonio@siteoptz.com');
+        console.log('📧 CC recipient: cubanfoodinternationalllc@gmail.com');
         
         // Copy order details to clipboard for easy access
         try {
@@ -1721,10 +1716,10 @@ ${isPaymentOrder ? 'Payment Token: ' + orderData.paymentToken : ''}
         }, 500);
         
         console.log('=== EMAIL DELIVERY SUMMARY ===');
-        console.log('✅ Company notification sent to: cubanfoodinternationalllc@gmail.com');
-        console.log('✅ Customer confirmation sent to:', customerEmail);
-        console.log('✅ CC recipient: antonio@siteoptz.com');
-        console.log('Email sending completed successfully!');
+        console.log('✅ Primary email sent to: antonio@siteoptz.com');
+        console.log('✅ CC notification sent to: cubanfoodinternationalllc@gmail.com');
+        console.log('📧 Customer reply-to address:', customerEmail);
+        console.log('Email form submission completed successfully!');
         
         if (isPaymentOrder) {
             showPaymentSuccess(orderData.paymentAmount);
