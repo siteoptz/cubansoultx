@@ -1700,12 +1700,6 @@ ${isPaymentOrder ? 'Payment Token: ' + orderData.paymentToken : ''}
             
             const customerData = new FormData();
             customerData.append('access_key', '3c652a51-87a6-4ac8-9e03-9dbfbedef8c0');
-            customerData.append('name', 'Cuban Soul Restaurant');
-            customerData.append('email', 'cubanfoodinternationalllc@gmail.com');
-            customerData.append('subject', `Thank you for your order, ${orderData.name}!`);
-            customerData.append('to', customerEmail);
-            customerData.append('_template', 'box');
-            customerData.append('_autoresponse', 'false');
             
             // Create customer-friendly email message
             const customerMessage = `Dear ${orderData.name},
@@ -1744,7 +1738,18 @@ Cuban Soul Restaurant
 Phone: (832) 410-5035
 Email: cubanfoodinternationalllc@gmail.com`;
             
+            // Configure for direct customer email
+            customerData.append('subject', `Thank you for your order, ${orderData.name}!`);
             customerData.append('message', customerMessage);
+            customerData.append('to', customerEmail);
+            customerData.append('from_name', 'Cuban Soul Restaurant');
+            customerData.append('from_email', 'cubanfoodinternationalllc@gmail.com');
+            customerData.append('reply_to', 'cubanfoodinternationalllc@gmail.com');
+            customerData.append('_template', 'table');
+            customerData.append('_format', 'plain');
+            customerData.append('_autoresponse', 'false');
+            customerData.append('_next', 'false');
+            customerData.append('_subject', `Thank you for your order, ${orderData.name}!`);
             
             console.log('Submitting customer email to Web3Forms...');
             const customerResponse = await fetch('https://api.web3forms.com/submit', {
