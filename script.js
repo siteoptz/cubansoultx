@@ -180,24 +180,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 subscriptionData[key] = value;
             }
 
-            // Create email content for subscription
-            const subject = 'Cuban Soul Newsletter Subscription';
-            const body = createSubscriptionEmail(subscriptionData);
-            
-            // Create mailto link
-            const mailtoLink = `mailto:subscribe@cubansoul.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-            
-            // Try to open email client
-            try {
-                window.location.href = mailtoLink;
-                showSubscriptionSuccess();
-                modal.style.display = 'none';
-                subscriptionForm.reset();
-            } catch (error) {
-                showSubscriptionSuccess();
-                modal.style.display = 'none';
-                subscriptionForm.reset();
-            }
+            // Send subscription email via FormSubmit
+            sendSubscriptionEmail(subscriptionData);
         });
     }
 
@@ -779,9 +763,9 @@ function showCheckoutMessage(message) {
 
 // Authorize.Net Configuration
 const authNetConfig = {
-    clientKey: '38fAR7rP',  // Using API Login ID as client key
+    clientKey: '4DX28g543cLwMy5u',  // Public client key
     apiLoginID: '38fAR7rP',
-    transactionKey: '863Us5Gbp5MRz877',
+    transactionKey: '3vMZvn92aMMSfzcyG5888qTUwjvNhY983jAuuy6mk9gZZFwFYv4bhF55856RA9SA',
     environment: 'production' // Using production with provided credentials
 };
 
@@ -1154,39 +1138,13 @@ function processModalPayment() {
     });
 
     try {
-        // Always simulate successful response for demo purposes since we don't have the actual client key
-        console.log('Simulating successful payment response for demo');
-        setTimeout(() => {
-            const mockResponse = {
-                messages: { resultCode: "Ok" },
-                opaqueData: {
-                    dataDescriptor: "COMMON.ACCEPT.INAPP.PAYMENT",
-                    dataValue: "demo_payment_nonce_" + Date.now()
-                }
-            };
-            responseHandler(mockResponse);
-        }, 2000);
-        return;
-        
-        // Real Accept.js call (commented out until we have proper client key)
-        // Accept.dispatchData(secureData, responseHandler);
+        // Use real Accept.js call with production credentials
+        console.log('Processing payment with Authorize.Net Accept.js');
+        Accept.dispatchData(secureData, responseHandler);
     } catch (error) {
         console.error('Accept.js error:', error);
-        
-        // Fallback: proceed with order submission without tokenization for demo purposes
-        console.log('Falling back to demo mode');
-        showPaymentError('Demo Mode: Proceeding with order submission. In production, this would process the payment securely.');
-        
-        setTimeout(() => {
-            const mockResponse = {
-                messages: { resultCode: "Ok" },
-                opaqueData: {
-                    dataDescriptor: "DEMO.FALLBACK.PAYMENT",
-                    dataValue: "demo_payment_token_" + Date.now()
-                }
-            };
-            responseHandler(mockResponse);
-        }, 2000);
+        showPaymentError('Payment processing error. Please check your card information and try again.');
+        hideModalPaymentProcessing();
     }
 
     function responseHandler(response) {
@@ -1399,7 +1357,7 @@ function showPaymentSuccess(amount) {
     }, 5000);
 }
 
-// Submit modal order with payment
+// Submit modal order with payment using FormSubmit
 function submitModalOrderWithPayment(opaqueData, amount) {
     // Collect all form data
     const formData = new FormData(document.getElementById('orderForm'));
@@ -1416,28 +1374,228 @@ function submitModalOrderWithPayment(opaqueData, amount) {
     orderData.paymentToken = opaqueData.dataValue;
     orderData.cardholderName = document.getElementById('modalCardholderName').value;
 
-    // Create order confirmation email
-    const subject = `Cuban Soul Order - Payment Processed - ${orderData.name}`;
-    const body = createPaymentEmailBody(orderData);
-    
-    // Submit to email with copy to antonio@siteoptz.com and customer
-    const customerEmail = orderData.email || document.getElementById('email').value;
-    const mailtoLink = `mailto:${customerEmail}?cc=orders@cubansoul.com,antonio@siteoptz.com&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    
+    // Send order confirmation email via FormSubmit
+    sendOrderConfirmationEmail(orderData, true);
+}
+
+// Send order confirmation email using FormSubmit
+async function sendOrderConfirmationEmail(orderData, isPaymentOrder = false) {
     try {
-        window.location.href = mailtoLink;
-        showPaymentSuccess(amount);
-        closePaymentModal();
+        const orderSummary = orderData.orderSummary;
+        const customerEmail = orderData.email || document.getElementById('email').value;
         
-        // Reset order form after successful submission
-        setTimeout(() => {
-            resetOrderSystem();
-        }, 2000);
+        // Create email subject
+        const subject = isPaymentOrder 
+            ? `Cuban Soul Order Confirmation - Payment Processed - ${orderData.name}`
+            : `Cuban Soul Order Request - ${orderData.name}`;
+            
+        // Create detailed order summary
+        let orderDetails = createFormSubmitEmailBody(orderData, isPaymentOrder);
+        
+        // Prepare FormSubmit data
+        const formSubmitData = new FormData();
+        formSubmitData.append('name', orderData.name || 'Cuban Soul Customer');
+        formSubmitData.append('email', customerEmail);
+        formSubmitData.append('_subject', subject);
+        formSubmitData.append('message', orderDetails);
+        formSubmitData.append('_cc', 'cubanfoodinternationalllc@gmail.com,antonio@siteoptz.com');
+        formSubmitData.append('_next', window.location.href + '?order=success');
+        
+        // Submit to FormSubmit
+        const response = await fetch('https://formsubmit.co/cubanfoodinternationalllc@gmail.com', {
+            method: 'POST',
+            body: formSubmitData
+        });
+        
+        if (response.ok) {
+            console.log('Order confirmation email sent successfully');
+            if (isPaymentOrder) {
+                showPaymentSuccess(orderData.paymentAmount);
+                closePaymentModal();
+                
+                // Reset order form after successful submission
+                setTimeout(() => {
+                    resetOrderSystem();
+                }, 2000);
+            } else {
+                showOrderSuccess();
+            }
+        } else {
+            throw new Error('Failed to send email');
+        }
+        
     } catch (error) {
+        console.error('Error sending order confirmation:', error);
         showPhoneMessage();
+    } finally {
+        hideModalPaymentProcessing();
+    }
+}
+
+// Create FormSubmit-formatted email body
+function createFormSubmitEmailBody(orderData, isPaymentOrder = false) {
+    const orderSummary = orderData.orderSummary;
+    let emailBody = '';
+    
+    // Header
+    emailBody += `=== CUBAN SOUL ORDER ${isPaymentOrder ? 'CONFIRMATION' : 'REQUEST'} ===\n\n`;
+    
+    // Customer Information
+    emailBody += `CUSTOMER INFORMATION:\n`;
+    emailBody += `Name: ${orderData.name}\n`;
+    emailBody += `Phone: ${orderData.phone}\n`;
+    emailBody += `Email: ${orderData.email}\n`;
+    emailBody += `Order Type: ${orderData.orderType}\n`;
+    if (orderData.address) {
+        emailBody += `Address: ${orderData.address}\n`;
+    }
+    emailBody += `Date: ${orderData.orderDate}\n`;
+    emailBody += `Time: ${orderData.orderTime}\n\n`;
+    
+    // Order Details
+    emailBody += `ORDER DETAILS:\n`;
+    
+    // Package
+    if (orderSummary.package) {
+        emailBody += `Package: ${orderSummary.package.type.replace('-', ' ')} - $${orderSummary.package.price.toFixed(2)}\n\n`;
     }
     
-    hideModalPaymentProcessing();
+    // Included Sides
+    if (orderSummary.includedSides.length > 0) {
+        emailBody += `Included Sides (${orderSummary.includedSides.length}/3):\n`;
+        orderSummary.includedSides.forEach(side => {
+            emailBody += `- ${side}\n`;
+        });
+        emailBody += '\n';
+    }
+    
+    // Extra Sides
+    if (orderSummary.extraSides.length > 0) {
+        emailBody += 'Extra Sides:\n';
+        orderSummary.extraSides.forEach(side => {
+            emailBody += `- ${side.item} - $${side.price.toFixed(2)}\n`;
+        });
+        emailBody += '\n';
+    }
+    
+    // Add-ons
+    if (orderSummary.addons.length > 0) {
+        emailBody += 'Add-ons (Free):\n';
+        orderSummary.addons.forEach(addon => {
+            emailBody += `- ${addon}\n`;
+        });
+        emailBody += '\n';
+    }
+    
+    // Desserts
+    if (orderSummary.desserts.length > 0) {
+        emailBody += 'Desserts:\n';
+        orderSummary.desserts.forEach(dessert => {
+            emailBody += `- ${dessert.item} - $${dessert.price.toFixed(2)}\n`;
+        });
+        emailBody += '\n';
+    }
+    
+    // Special Instructions
+    if (orderData.specialInstructions) {
+        emailBody += `Special Instructions:\n${orderData.specialInstructions}\n\n`;
+    }
+    
+    // Order Total
+    emailBody += `ORDER TOTAL: $${orderSummary.total.toFixed(2)}\n\n`;
+    
+    // Payment Information (if applicable)
+    if (isPaymentOrder) {
+        emailBody += `PAYMENT INFORMATION:\n`;
+        emailBody += `Amount Charged: $${orderData.paymentAmount.toFixed(2)}\n`;
+        emailBody += `Payment Status: PROCESSED\n`;
+        emailBody += `Cardholder Name: ${orderData.cardholderName}\n`;
+        emailBody += `Payment Token: ${orderData.paymentToken}\n\n`;
+        emailBody += `This order has been successfully processed and payment has been collected.\n\n`;
+    } else {
+        emailBody += `This is an order request. Payment has NOT been processed yet.\n\n`;
+    }
+    
+    // Footer
+    emailBody += `=== CUBAN SOUL CONTACT ===\n`;
+    emailBody += `Phone: (832) 410-5035\n`;
+    emailBody += `Email: cubanfoodinternationalllc@gmail.com\n`;
+    emailBody += `"Sabor Que Viene Del Alma"\n`;
+    
+    return emailBody;
+}
+
+// Send subscription email using FormSubmit
+async function sendSubscriptionEmail(subscriptionData) {
+    try {
+        const formSubmitData = new FormData();
+        formSubmitData.append('name', subscriptionData.subName || 'Newsletter Subscriber');
+        formSubmitData.append('email', subscriptionData.subEmail);
+        formSubmitData.append('phone', subscriptionData.subPhone || 'Not provided');
+        formSubmitData.append('_subject', 'Cuban Soul Newsletter Subscription');
+        formSubmitData.append('message', `New newsletter subscription from ${subscriptionData.subName}\n\nEmail: ${subscriptionData.subEmail}\nPhone: ${subscriptionData.subPhone || 'Not provided'}\n\nSubscribed: ${new Date().toLocaleString()}`);
+        formSubmitData.append('_cc', 'antonio@siteoptz.com');
+        formSubmitData.append('_next', window.location.href + '?subscription=success');
+        
+        // Submit to FormSubmit
+        const response = await fetch('https://formsubmit.co/cubanfoodinternationalllc@gmail.com', {
+            method: 'POST',
+            body: formSubmitData
+        });
+        
+        if (response.ok) {
+            console.log('Subscription email sent successfully');
+            showSubscriptionSuccess();
+            const modal = document.getElementById('subscriptionModal');
+            const subscriptionForm = document.getElementById('subscriptionForm');
+            if (modal) modal.style.display = 'none';
+            if (subscriptionForm) subscriptionForm.reset();
+        } else {
+            throw new Error('Failed to send subscription');
+        }
+        
+    } catch (error) {
+        console.error('Error sending subscription:', error);
+        // Still show success to user but log the error
+        showSubscriptionSuccess();
+        const modal = document.getElementById('subscriptionModal');
+        const subscriptionForm = document.getElementById('subscriptionForm');
+        if (modal) modal.style.display = 'none';
+        if (subscriptionForm) subscriptionForm.reset();
+    }
+}
+
+// Show order success message
+function showOrderSuccess() {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'order-success-message';
+    messageDiv.innerHTML = `
+        <div class="success-content">
+            <h3>✅ Order Request Sent!</h3>
+            <p>Thank you for your order request. We will contact you shortly to confirm your order and arrange delivery/pickup.</p>
+        </div>
+    `;
+    messageDiv.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        border: 3px solid #28a745;
+        border-radius: 10px;
+        padding: 30px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        z-index: 10000;
+        text-align: center;
+        max-width: 400px;
+    `;
+    
+    document.body.appendChild(messageDiv);
+    
+    // Remove after 5 seconds
+    setTimeout(() => {
+        messageDiv.remove();
+    }, 5000);
 }
 
 // Show modal payment processing indicator
