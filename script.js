@@ -29,13 +29,15 @@ document.addEventListener('DOMContentLoaded', function() {
     // Show/hide address field based on order type
     if (orderType && addressGroup) {
         orderType.addEventListener('change', function() {
-            if (this.value === 'delivery' || this.value === 'catering') {
+            if (this.value === 'delivery') {
                 addressGroup.style.display = 'block';
                 document.getElementById('address').required = true;
             } else {
                 addressGroup.style.display = 'none';
                 document.getElementById('address').required = false;
             }
+            // Update total when order type changes (for delivery fee)
+            updateOrderTotal();
         });
     }
 
@@ -309,29 +311,66 @@ function updateOrderTotal() {
     const extraSidesCheckboxes = document.querySelectorAll('input[name="extraSides"]:checked');
     const dessertsCheckboxes = document.querySelectorAll('input[name="desserts"]:checked');
     const totalAmountElement = document.getElementById('totalAmount');
+    const orderType = document.getElementById('orderType');
     
-    let total = 0;
+    let subtotal = 0;
 
     // Add package price if selected
     if (selectedPackage) {
-        total += parseFloat(selectedPackage.dataset.price);
+        subtotal += parseFloat(selectedPackage.dataset.price);
     }
 
     // Calculate extra sides total
     extraSidesCheckboxes.forEach(checkbox => {
         const price = parseFloat(checkbox.dataset.price);
-        total += price;
+        subtotal += price;
     });
 
     // Calculate desserts total
     dessertsCheckboxes.forEach(checkbox => {
         const price = parseFloat(checkbox.dataset.price);
-        total += price;
+        subtotal += price;
     });
 
-    // Update the display
+    // Calculate delivery fee and tax
+    let deliveryFee = 0;
+    let tax = 0;
+
+    // Add delivery fee if delivery is selected
+    if (orderType && orderType.value === 'delivery') {
+        deliveryFee = 15.00;
+    }
+
+    // Calculate 8.25% tax on subtotal only
+    tax = subtotal * 0.0825;
+    
+    // Calculate final total
+    let total = subtotal + deliveryFee + tax;
+
+    // Update the display elements
+    const subtotalAmountElement = document.getElementById('subtotalAmount');
+    const taxAmountElement = document.getElementById('taxAmount');
+    const deliveryFeeLineElement = document.getElementById('deliveryFeeLine');
+    
+    if (subtotalAmountElement) {
+        subtotalAmountElement.textContent = subtotal.toFixed(2);
+    }
+    
+    if (taxAmountElement) {
+        taxAmountElement.textContent = tax.toFixed(2);
+    }
+    
     if (totalAmountElement) {
         totalAmountElement.textContent = total.toFixed(2);
+    }
+    
+    // Show/hide delivery fee line
+    if (deliveryFeeLineElement) {
+        if (orderType && orderType.value === 'delivery') {
+            deliveryFeeLineElement.style.display = 'flex';
+        } else {
+            deliveryFeeLineElement.style.display = 'none';
+        }
     }
     
     // Also update the order details field in the order form

@@ -505,6 +505,13 @@ h1 {
     border-color: var(--primary-color);
 }
 
+.delivery-note {
+    font-size: 0.85rem;
+    color: var(--text-light);
+    margin-top: 5px;
+    font-style: italic;
+}
+
 .form-note {
     font-size: 0.9rem;
     color: var(--text-light);
@@ -905,6 +912,28 @@ html {
     font-family: 'Croissant One', cursive;
     font-size: 1.4rem;
     margin-bottom: 15px;
+    color: #F2DAB2;
+}
+
+.total-breakdown {
+    margin-bottom: 20px;
+}
+
+.breakdown-line {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-size: 0.95rem;
+}
+
+.breakdown-total {
+    display: flex;
+    justify-content: space-between;
+    border-top: 1px solid #F2DAB2;
+    padding-top: 10px;
+    margin-top: 10px;
+    font-size: 1.2rem;
+    font-weight: bold;
     color: #F2DAB2;
 }
 
