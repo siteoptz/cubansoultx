@@ -512,6 +512,39 @@ h1 {
     font-style: italic;
 }
 
+.required {
+    color: #e74c3c;
+    font-weight: bold;
+}
+
+.package-requirement {
+    font-size: 0.9rem;
+    color: var(--text-light);
+    margin-bottom: 20px;
+    font-style: italic;
+}
+
+.menu-section-disabled {
+    opacity: 0.5;
+    pointer-events: none;
+    position: relative;
+}
+
+.menu-section-disabled::after {
+    content: "Please select a package first";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(36, 55, 70, 0.9);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-size: 0.9rem;
+    z-index: 10;
+    white-space: nowrap;
+}
+
 .form-note {
     font-size: 0.9rem;
     color: var(--text-light);

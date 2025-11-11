@@ -137,7 +137,8 @@
                 <div class="menu-main-content">
                     <!-- Package Selection -->
                     <div class="menu-category package-selection">
-                        <h3>Choose Your Package</h3>
+                        <h3>Choose Your Package <span class="required">*</span></h3>
+                        <p class="package-requirement">Please select a package first before choosing additional items</p>
                         <div class="package-options">
                             <label class="package-option">
                                 <input type="radio" name="package" value="15-people" data-price="210.00">
@@ -163,7 +164,7 @@
                     <!-- First Row: Main Entrees and Extra Sides -->
                     <div class="menu-row">
                         <!-- Main Entrees Section -->
-                        <div class="menu-category">
+                        <div class="menu-category menu-section-disabled" id="mainEntreesSection">
                             <h3>Main Entrees</h3>
                             <p class="category-description">Choose your main entree and select 3 sides from the options below</p>
                             
@@ -201,7 +202,7 @@
                         </div>
 
                         <!-- Extra Sides Section -->
-                        <div class="menu-category">
+                        <div class="menu-category menu-section-disabled" id="extraSidesSection">
                             <h3>Extra Sides ($3 USD per serving)</h3>
                             <div class="extra-sides-options vertical-list">
                                 <label class="side-option">
@@ -241,7 +242,7 @@
                     <!-- Second Row: Add-ons and Desserts -->
                     <div class="menu-row">
                         <!-- Available Add-ons Section -->
-                        <div class="menu-category">
+                        <div class="menu-category menu-section-disabled" id="addonsSection">
                             <h3>Available Add-ons (Free only if ordered by the customer)</h3>
                             <div class="addons-options vertical-list">
                                 <label class="side-option">
@@ -263,7 +264,7 @@
                         </div>
 
                         <!-- Desserts Section -->
-                        <div class="menu-category">
+                        <div class="menu-category menu-section-disabled" id="dessertsSection">
                             <h3>Desserts</h3>
                             <div class="desserts-options vertical-list">
                                 <label class="side-option">

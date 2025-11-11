@@ -64,7 +64,19 @@ document.addEventListener('DOMContentLoaded', function() {
         orderForm.addEventListener('submit', function(e) {
             e.preventDefault();
             
-            // Open payment modal directly without validation
+            // Validate package selection first
+            const selectedPackage = document.querySelector('input[name="package"]:checked');
+            if (!selectedPackage) {
+                alert('Please select a package before proceeding to checkout.');
+                // Scroll to package selection
+                document.querySelector('.package-selection').scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+                return;
+            }
+            
+            // Open payment modal if validation passes
             openPaymentModal();
         });
     }
@@ -223,6 +235,18 @@ document.addEventListener('DOMContentLoaded', function() {
     const checkoutBtn = document.getElementById('checkoutBtn');
     if (checkoutBtn) {
         checkoutBtn.addEventListener('click', function() {
+            // Validate package selection first
+            const selectedPackage = document.querySelector('input[name="package"]:checked');
+            if (!selectedPackage) {
+                alert('Please select a package before proceeding to checkout.');
+                // Scroll to package selection
+                document.querySelector('.package-selection').scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+                return;
+            }
+            
             const orderSummary = getCurrentOrderSummary();
             if (orderSummary.total > 0) {
                 // Scroll to order form
@@ -255,6 +279,8 @@ function initializeMenuOrderSystem() {
     // Handle package selection
     packageRadios.forEach(radio => {
         radio.addEventListener('change', function() {
+            // Enable other menu sections when package is selected
+            enableMenuSections();
             updateOrderTotal();
         });
     });
@@ -302,6 +328,23 @@ function initializeMenuOrderSystem() {
             // Add-ons are free, so no price calculation needed
             console.log('Add-on selected:', this.value);
         });
+    });
+}
+
+// Enable menu sections after package selection
+function enableMenuSections() {
+    const menuSections = [
+        'mainEntreesSection',
+        'extraSidesSection', 
+        'addonsSection',
+        'dessertsSection'
+    ];
+    
+    menuSections.forEach(sectionId => {
+        const section = document.getElementById(sectionId);
+        if (section) {
+            section.classList.remove('menu-section-disabled');
+        }
     });
 }
 
