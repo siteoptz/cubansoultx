@@ -1698,9 +1698,6 @@ ${isPaymentOrder ? 'Payment Token: ' + orderData.paymentToken : ''}
             console.log('Sending customer thank you email...');
             console.log('Customer email address:', customerEmail);
             
-            const customerData = new FormData();
-            customerData.append('access_key', '3c652a51-87a6-4ac8-9e03-9dbfbedef8c0');
-            
             // Create customer-friendly email message
             const customerMessage = `Dear ${orderData.name},
 
@@ -1737,21 +1734,18 @@ The Cuban Soul Team
 Cuban Soul Restaurant
 Phone: (832) 410-5035
 Email: cubanfoodinternationalllc@gmail.com`;
-            
-            // Configure for direct customer email
+
+            // Use Web3Forms endpoint directly for customer email ONLY
+            const customerData = new FormData();
+            customerData.append('access_key', '3c652a51-87a6-4ac8-9e03-9dbfbedef8c0');
+            customerData.append('email', customerEmail);  // This becomes the TO address
+            customerData.append('name', orderData.name);
             customerData.append('subject', `Thank you for your order, ${orderData.name}!`);
             customerData.append('message', customerMessage);
-            customerData.append('to', customerEmail);
-            customerData.append('from_name', 'Cuban Soul Restaurant');
-            customerData.append('from_email', 'cubanfoodinternationalllc@gmail.com');
-            customerData.append('reply_to', 'cubanfoodinternationalllc@gmail.com');
-            customerData.append('_template', 'table');
-            customerData.append('_format', 'plain');
-            customerData.append('_autoresponse', 'false');
-            customerData.append('_next', 'false');
-            customerData.append('_subject', `Thank you for your order, ${orderData.name}!`);
+            customerData.append('_captcha', 'false');
+            customerData.append('_template', 'box');
             
-            console.log('Submitting customer email to Web3Forms...');
+            console.log(`Submitting customer email ONLY to: ${customerEmail}`);
             const customerResponse = await fetch('https://api.web3forms.com/submit', {
                 method: 'POST',
                 body: customerData
@@ -1762,7 +1756,7 @@ Email: cubanfoodinternationalllc@gmail.com`;
             
             if (customerResult.success) {
                 console.log('✅ Customer thank you email sent successfully');
-                console.log(`📧 Customer email sent to: ${customerEmail}`);
+                console.log(`📧 Customer email sent ONLY to: ${customerEmail}`);
             } else {
                 console.error('❌ Failed to send customer thank you email:', customerResult.message);
                 console.error('Customer email error details:', customerResult);
