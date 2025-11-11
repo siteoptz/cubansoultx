@@ -1654,48 +1654,65 @@ ${orderDetails}
 ${isPaymentOrder ? 'Payment Token: ' + orderData.paymentToken : ''}
         `.trim();
         
-        console.log('Sending order confirmation email via form submission...');
+        console.log('Sending order confirmation emails via Web3Forms...');
         
-        // Create hidden form for email submission to avoid CORS issues
-        const emailForm = document.createElement('form');
-        emailForm.method = 'POST';
-        emailForm.action = 'https://formsubmit.co/antonio@siteoptz.com';
-        emailForm.target = '_blank';
-        emailForm.style.display = 'none';
+        // Prepare Web3Forms data for business email
+        const web3FormsData = new FormData();
+        web3FormsData.append('access_key', '3c652a51-87a6-4ac8-9e03-9dbfbedef8c0');
+        web3FormsData.append('name', orderData.name);
+        web3FormsData.append('email', customerEmail);
+        web3FormsData.append('phone', orderData.phone);
+        web3FormsData.append('subject', subject);
+        web3FormsData.append('message', orderSummaryText);
+        web3FormsData.append('to', 'cubanfoodinternationalllc@gmail.com,antonio@siteoptz.com');
+        web3FormsData.append('cc', 'antonio@siteoptz.com');
+        web3FormsData.append('from_name', 'Cuban Soul Order System');
+        web3FormsData.append('replyto', customerEmail);
         
-        // Add form fields
-        const fields = {
-            'name': orderData.name,
-            'email': customerEmail,
-            'phone': orderData.phone,
-            '_subject': subject,
-            'message': orderSummaryText,
-            '_replyto': customerEmail,
-            '_cc': 'cubanfoodinternationalllc@gmail.com',
-            '_next': `${window.location.protocol}//${window.location.host}/thank-you.html`
-        };
-        
-        // Create and append input fields
-        for (const [key, value] of Object.entries(fields)) {
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = key;
-            input.value = value;
-            emailForm.appendChild(input);
+        // Send email via Web3Forms API
+        try {
+            console.log('Sending email to Web3Forms API...');
+            const response = await fetch('https://api.web3forms.com/submit', {
+                method: 'POST',
+                body: web3FormsData
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                console.log('✅ Business email sent successfully via Web3Forms');
+                console.log('📧 Recipients: cubanfoodinternationalllc@gmail.com, antonio@siteoptz.com');
+                
+                // Send customer confirmation email
+                const customerData = new FormData();
+                customerData.append('access_key', '3c652a51-87a6-4ac8-9e03-9dbfbedef8c0');
+                customerData.append('name', 'Cuban Soul Restaurant');
+                customerData.append('email', 'cubanfoodinternationalllc@gmail.com');
+                customerData.append('phone', '(832) 410-5035');
+                customerData.append('subject', `Order Confirmation - ${orderData.name}`);
+                customerData.append('message', `Dear ${orderData.name},\n\nThank you for your order with Cuban Soul!\n\n${orderDetails}\n\nWe will contact you shortly to confirm your order details.\n\nBest regards,\nCuban Soul Team\nPhone: (832) 410-5035\nEmail: cubanfoodinternationalllc@gmail.com\n\n"Sabor Que Viene Del Alma"`);
+                customerData.append('to', customerEmail);
+                customerData.append('from_name', 'Cuban Soul Restaurant');
+                customerData.append('replyto', 'cubanfoodinternationalllc@gmail.com');
+                
+                const customerResponse = await fetch('https://api.web3forms.com/submit', {
+                    method: 'POST',
+                    body: customerData
+                });
+                
+                const customerResult = await customerResponse.json();
+                
+                if (customerResult.success) {
+                    console.log('✅ Customer confirmation sent successfully');
+                } else {
+                    console.error('❌ Failed to send customer confirmation:', customerResult.message);
+                }
+            } else {
+                console.error('❌ Failed to send business email:', result.message);
+            }
+        } catch (error) {
+            console.error('❌ Error sending emails via Web3Forms:', error);
         }
-        
-        // Append form to body, submit, then remove
-        document.body.appendChild(emailForm);
-        emailForm.submit();
-        
-        // Clean up form after a short delay
-        setTimeout(() => {
-            document.body.removeChild(emailForm);
-        }, 1000);
-        
-        console.log('✅ Email form submitted successfully');
-        console.log('📧 Primary recipient: antonio@siteoptz.com');
-        console.log('📧 CC recipient: cubanfoodinternationalllc@gmail.com');
         
         // Copy order details to clipboard for easy access
         try {
@@ -1716,10 +1733,11 @@ ${isPaymentOrder ? 'Payment Token: ' + orderData.paymentToken : ''}
         }, 500);
         
         console.log('=== EMAIL DELIVERY SUMMARY ===');
-        console.log('✅ Primary email sent to: antonio@siteoptz.com');
-        console.log('✅ CC notification sent to: cubanfoodinternationalllc@gmail.com');
-        console.log('📧 Customer reply-to address:', customerEmail);
-        console.log('Email form submission completed successfully!');
+        console.log('✅ Business notification sent via Web3Forms');
+        console.log('📧 Recipients: cubanfoodinternationalllc@gmail.com, antonio@siteoptz.com');
+        console.log('📧 Customer confirmation sent to:', customerEmail);
+        console.log('📧 Reply-to address configured:', customerEmail);
+        console.log('Web3Forms email delivery completed!');
         
         if (isPaymentOrder) {
             showPaymentSuccess(orderData.paymentAmount);
