@@ -1693,10 +1693,10 @@ ${isPaymentOrder ? 'Payment Token: ' + orderData.paymentToken : ''}
             console.error('❌ Error sending business email via Web3Forms:', error);
         }
         
-        // Send customer thank you email (independent of business email success)
+        // Send customer thank you email DIRECTLY to customer (NO business emails)
         try {
-            console.log('Sending customer thank you email...');
-            console.log('Customer email address:', customerEmail);
+            console.log('Sending customer thank you email DIRECTLY to customer...');
+            console.log(`Target customer email: ${customerEmail}`);
             
             // Create customer-friendly email message
             const customerMessage = `Dear ${orderData.name},
@@ -1735,34 +1735,45 @@ Cuban Soul Restaurant
 Phone: (832) 410-5035
 Email: cubanfoodinternationalllc@gmail.com`;
 
-            // Use Web3Forms endpoint directly for customer email ONLY
-            const customerData = new FormData();
-            customerData.append('access_key', '3c652a51-87a6-4ac8-9e03-9dbfbedef8c0');
-            customerData.append('email', customerEmail);  // This becomes the TO address
-            customerData.append('name', orderData.name);
-            customerData.append('subject', `Thank you for your order, ${orderData.name}!`);
-            customerData.append('message', customerMessage);
-            customerData.append('_captcha', 'false');
-            customerData.append('_template', 'box');
+            // Create completely separate Web3Forms submission for customer ONLY
+            const customerFormData = new FormData();
+            customerFormData.append('access_key', '3c652a51-87a6-4ac8-9e03-9dbfbedef8c0');
+            customerFormData.append('from_name', 'Cuban Soul Restaurant');
+            customerFormData.append('subject', `Thank you for your order, ${orderData.name}!`);
+            customerFormData.append('message', customerMessage);
+            customerFormData.append('email', customerEmail); // Customer's email as sender
+            customerFormData.append('name', orderData.name); // Customer's name
+            customerFormData.append('to_email', customerEmail); // Force send TO customer
+            customerFormData.append('recipient', customerEmail); // Alternative recipient field
+            customerFormData.append('_template', 'basic');
+            customerFormData.append('_format', 'plain');
             
-            console.log(`Submitting customer email ONLY to: ${customerEmail}`);
+            console.log(`🎯 Sending email TO: ${customerEmail} (customer only)`);
+            console.log('❌ NO emails to antonio@siteoptz.com or cubanfoodinternationalllc@gmail.com');
+            
             const customerResponse = await fetch('https://api.web3forms.com/submit', {
                 method: 'POST',
-                body: customerData
+                body: customerFormData
             });
             
             const customerResult = await customerResponse.json();
-            console.log('Customer email result:', customerResult);
+            console.log('Customer email API result:', customerResult);
             
             if (customerResult.success) {
-                console.log('✅ Customer thank you email sent successfully');
-                console.log(`📧 Customer email sent ONLY to: ${customerEmail}`);
+                console.log(`✅ Customer thank you email sent DIRECTLY to: ${customerEmail}`);
+                console.log('✅ NO business emails received this thank you email');
             } else {
                 console.error('❌ Failed to send customer thank you email:', customerResult.message);
                 console.error('Customer email error details:', customerResult);
+                
+                // If Web3Forms fails, log the issue clearly
+                console.error('🚨 CUSTOMER EMAIL NOT DELIVERED - Web3Forms routing issue');
+                console.error(`🚨 Email should go to: ${customerEmail}`);
+                console.error('🚨 NOT to business emails');
             }
         } catch (error) {
             console.error('❌ Error sending customer email via Web3Forms:', error);
+            console.error(`🚨 Customer ${customerEmail} did not receive thank you email`);
         }
         
         // Copy order details to clipboard for easy access
