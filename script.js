@@ -1735,16 +1735,15 @@ Cuban Soul Restaurant
 Phone: (832) 410-5035
 Email: cubanfoodinternationalllc@gmail.com`;
 
-            // Create completely separate Web3Forms submission for customer ONLY
+            // Create customer email with CORRECT to/reply-to configuration
             const customerFormData = new FormData();
             customerFormData.append('access_key', '3c652a51-87a6-4ac8-9e03-9dbfbedef8c0');
-            customerFormData.append('from_name', 'Cuban Soul Restaurant');
+            customerFormData.append('name', 'Cuban Soul Restaurant');
+            customerFormData.append('email', 'cubanfoodinternationalllc@gmail.com'); // FROM business
             customerFormData.append('subject', `Thank you for your order, ${orderData.name}!`);
             customerFormData.append('message', customerMessage);
-            customerFormData.append('email', customerEmail); // Customer's email as sender
-            customerFormData.append('name', orderData.name); // Customer's name
-            customerFormData.append('to_email', customerEmail); // Force send TO customer
-            customerFormData.append('recipient', customerEmail); // Alternative recipient field
+            customerFormData.append('to', customerEmail); // TO customer's email
+            customerFormData.append('reply_to', 'cubanfoodinternationalllc@gmail.com'); // REPLY-TO business
             customerFormData.append('_template', 'basic');
             customerFormData.append('_format', 'plain');
             
