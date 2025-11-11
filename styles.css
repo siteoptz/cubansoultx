@@ -939,6 +939,9 @@ html {
     text-align: center;
     width: 250px;
     border: 3px solid #F2DAB2;
+    position: sticky;
+    top: 20px;
+    align-self: flex-start;
 }
 
 .order-total-card h3 {

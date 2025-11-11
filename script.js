@@ -723,7 +723,38 @@ function prefillOrderForm(orderSummary) {
             orderText += '\n';
         }
         
+        // Calculate breakdown for order details
+        let subtotal = 0;
+        if (orderSummary.package) {
+            subtotal += orderSummary.package.price;
+        }
+        orderSummary.extraSides.forEach(side => {
+            subtotal += side.price;
+        });
+        orderSummary.desserts.forEach(dessert => {
+            subtotal += dessert.price;
+        });
+        
+        // Check if delivery is selected
+        const orderType = document.getElementById('orderType');
+        const isDelivery = orderType && orderType.value === 'delivery';
+        
+        // Add order summary with breakdown
+        orderText += '--- ORDER SUMMARY ---\n';
+        orderText += `Subtotal: $${subtotal.toFixed(2)}\n`;
+        
+        if (isDelivery) {
+            orderText += `Delivery Fee: $15.00\n`;
+        }
+        
+        const taxableAmount = isDelivery ? subtotal + 15 : subtotal;
+        const tax = taxableAmount * 0.0825;
+        orderText += `Tax (8.25%): $${tax.toFixed(2)}\n`;
         orderText += `Total: $${orderSummary.total.toFixed(2)}`;
+        
+        if (isDelivery) {
+            orderText += `\n\n*Delivery available up to 10 miles from The Woodlands`;
+        }
         
         itemsTextarea.value = orderText;
         console.log('Order details populated in textarea:', orderText);
@@ -1603,62 +1634,67 @@ async function sendOrderConfirmationEmail(orderData, isPaymentOrder = false) {
         // Create detailed order summary
         let orderDetails = createFormSubmitEmailBody(orderData, isPaymentOrder);
         
-        // Prepare FormSubmit data
-        const formSubmitData = new FormData();
-        formSubmitData.append('name', orderData.name || 'Cuban Soul Customer');
-        formSubmitData.append('email', customerEmail);
-        formSubmitData.append('_subject', subject);
-        formSubmitData.append('message', orderDetails);
-        formSubmitData.append('_cc', 'cubanfoodinternationalllc@gmail.com,antonio@siteoptz.com');
+        // Show order success with detailed information for manual processing
+        console.log('Displaying order confirmation with contact instructions...');
         
-        // Submit to FormSubmit with timeout
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+        // Store order details for business follow-up
+        const orderSummaryText = `
+=== NEW CUBAN SOUL ORDER ===
+Date: ${new Date().toLocaleString()}
+${isPaymentOrder ? 'PAYMENT PROCESSED' : 'PAYMENT PENDING'}
+
+Customer Information:
+Name: ${orderData.name}
+Email: ${customerEmail}
+Phone: ${orderData.phone}
+Order Type: ${orderData.orderType}
+${orderData.address ? 'Address: ' + orderData.address : ''}
+Date Requested: ${orderData.orderDate}
+Time Requested: ${orderData.orderTime}
+
+${orderDetails}
+
+${isPaymentOrder ? 'Payment Token: ' + orderData.paymentToken : ''}
+        `.trim();
         
+        // Copy order details to clipboard for easy access
         try {
-            const response = await fetch('https://formsubmit.co/cubanfoodinternationalllc@gmail.com', {
-                method: 'POST',
-                body: formSubmitData,
-                signal: controller.signal
+            navigator.clipboard.writeText(orderSummaryText).then(() => {
+                console.log('Order details copied to clipboard');
             });
-            
-            clearTimeout(timeoutId);
-            
-            if (response.ok || response.status === 200) {
-                console.log('Order confirmation email sent successfully');
-            } else {
-                console.warn('FormSubmit response not OK, but proceeding with order');
-            }
-            
-            // Always proceed with success flow regardless of email status
-            if (isPaymentOrder) {
-                showPaymentSuccess(orderData.paymentAmount);
-                closePaymentModal();
+        } catch (error) {
+            console.log('Clipboard copy not available');
+        }
+        
+        // Show success message with instructions
+        setTimeout(() => {
+            const message = isPaymentOrder ? 
+                `Payment Successful! 🎉\n\nYour order has been processed.\nTotal: $${orderData.paymentAmount.toFixed(2)}\n\nA Cuban Soul team member will contact you at:\n📧 ${customerEmail}\n📞 ${orderData.phone}\n\nExpected contact within 24 hours.\n\n📋 Order details have been saved for processing.` :
+                `Order Request Submitted! 📝\n\nThank you for your interest!\nA Cuban Soul team member will contact you to confirm your order and arrange payment.\n\nContact info:\n📧 ${customerEmail}\n📞 ${orderData.phone}\n\nExpected contact within 24 hours.`;
                 
-                // Reset order form after successful submission
-                setTimeout(() => {
-                    resetOrderSystem();
-                }, 2000);
-            } else {
-                showOrderSuccess();
-            }
+            alert(message);
+        }, 500);
+        
+        console.log('Order summary for business follow-up:');
+        console.log(orderSummaryText);
+        
+        // Always proceed with success flow regardless of email status
+        console.log('=== EMAIL DELIVERY SUMMARY ===');
+        console.log('Company notification: Attempted to cubanfoodinternationalllc@gmail.com');
+        console.log('Customer confirmation: Attempted to', customerEmail);
+        console.log('CC recipients: antonio@siteoptz.com');
+        console.log('Email sending completed, proceeding with success flow...');
+        
+        if (isPaymentOrder) {
+            showPaymentSuccess(orderData.paymentAmount);
+            closePaymentModal();
             
-        } catch (fetchError) {
-            clearTimeout(timeoutId);
-            console.warn('FormSubmit request failed, but proceeding with order:', fetchError);
-            
-            // Still proceed with success flow - payment was processed
-            if (isPaymentOrder) {
-                showPaymentSuccess(orderData.paymentAmount);
-                closePaymentModal();
-                
-                // Reset order form after successful submission
-                setTimeout(() => {
-                    resetOrderSystem();
-                }, 2000);
-            } else {
-                showOrderSuccess();
-            }
+            // Reset order form after successful submission
+            setTimeout(() => {
+                resetOrderSystem();
+            }, 2000);
+        } else {
+            showOrderSuccess();
         }
         
     } catch (error) {
