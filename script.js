@@ -1683,14 +1683,52 @@ ${isPaymentOrder ? 'Payment Token: ' + orderData.paymentToken : ''}
                 console.log('✅ Business email sent successfully via Web3Forms');
                 console.log('📧 Recipients: cubanfoodinternationalllc@gmail.com, antonio@siteoptz.com');
                 
-                // Send customer confirmation email
+                // Send customer thank you email with order details
                 const customerData = new FormData();
                 customerData.append('access_key', '3c652a51-87a6-4ac8-9e03-9dbfbedef8c0');
                 customerData.append('name', 'Cuban Soul Restaurant');
                 customerData.append('email', 'cubanfoodinternationalllc@gmail.com');
                 customerData.append('phone', '(832) 410-5035');
-                customerData.append('subject', `Order Confirmation - ${orderData.name}`);
-                customerData.append('message', `Dear ${orderData.name},\n\nThank you for your order with Cuban Soul!\n\n${orderDetails}\n\nWe will contact you shortly to confirm your order details.\n\nBest regards,\nCuban Soul Team\nPhone: (832) 410-5035\nEmail: cubanfoodinternationalllc@gmail.com\n\n"Sabor Que Viene Del Alma"`);
+                customerData.append('subject', `Thank you for your order, ${orderData.name}!`);
+                
+                // Create customer-friendly email message
+                const customerMessage = `Dear ${orderData.name},
+
+Thank you for choosing Cuban Soul! We're excited to prepare your delicious order.
+
+ORDER DETAILS:
+${orderDetails}
+
+Order Date: ${new Date().toLocaleDateString()}
+Order Time: ${new Date().toLocaleTimeString()}
+
+${isPaymentOrder ? `✅ PAYMENT PROCESSED
+Total Charged: $${orderData.paymentAmount.toFixed(2)}
+Payment Status: Successfully processed` : `📋 ORDER REQUEST SUBMITTED
+We will contact you to confirm your order and arrange payment.`}
+
+WHAT'S NEXT:
+• A member of our team will contact you shortly to confirm your order
+• We'll provide you with pickup/delivery details
+• Your fresh, authentic Cuban food will be prepared with love!
+
+QUESTIONS OR CHANGES:
+If you have any questions or need to make changes to your order, please contact us:
+📞 Phone: (832) 410-5035
+📧 Email: cubanfoodinternationalllc@gmail.com
+
+Thank you for supporting Cuban Soul!
+
+Best regards,
+The Cuban Soul Team
+"Sabor Que Viene Del Alma"
+
+---
+Cuban Soul Restaurant
+Phone: (832) 410-5035
+Email: cubanfoodinternationalllc@gmail.com`;
+                
+                customerData.append('message', customerMessage);
                 customerData.append('to', customerEmail);
                 customerData.append('from_name', 'Cuban Soul Restaurant');
                 customerData.append('replyto', 'cubanfoodinternationalllc@gmail.com');
@@ -1703,9 +1741,10 @@ ${isPaymentOrder ? 'Payment Token: ' + orderData.paymentToken : ''}
                 const customerResult = await customerResponse.json();
                 
                 if (customerResult.success) {
-                    console.log('✅ Customer confirmation sent successfully');
+                    console.log('✅ Customer thank you email sent successfully');
+                    console.log(`📧 Customer email sent to: ${customerEmail}`);
                 } else {
-                    console.error('❌ Failed to send customer confirmation:', customerResult.message);
+                    console.error('❌ Failed to send customer thank you email:', customerResult.message);
                 }
             } else {
                 console.error('❌ Failed to send business email:', result.message);
@@ -1726,18 +1765,19 @@ ${isPaymentOrder ? 'Payment Token: ' + orderData.paymentToken : ''}
         // Show success message with instructions
         setTimeout(() => {
             const message = isPaymentOrder ? 
-                `Payment Successful! 🎉\n\nYour order has been processed.\nTotal: $${orderData.paymentAmount.toFixed(2)}\n\nConfirmation emails sent to:\n📧 ${customerEmail}\n📧 cubanfoodinternationalllc@gmail.com\n\nExpected contact within 24 hours.` :
-                `Order Request Submitted! 📝\n\nConfirmation emails sent to:\n📧 ${customerEmail}\n📧 cubanfoodinternationalllc@gmail.com\n\nA Cuban Soul team member will contact you to confirm your order and arrange payment.\n\nExpected contact within 24 hours.`;
+                `Payment Successful! 🎉\n\nYour order has been processed.\nTotal: $${orderData.paymentAmount.toFixed(2)}\n\nThank you email sent to: ${customerEmail}\nBusiness notifications sent to Cuban Soul team\n\nA team member will contact you shortly to confirm pickup/delivery details.` :
+                `Order Request Submitted! 📝\n\nThank you email sent to: ${customerEmail}\nBusiness notifications sent to Cuban Soul team\n\nA team member will contact you to confirm your order and arrange payment.\n\nExpected contact within 24 hours.`;
                 
             alert(message);
         }, 500);
         
         console.log('=== EMAIL DELIVERY SUMMARY ===');
         console.log('✅ Business notification sent via Web3Forms');
-        console.log('📧 Recipients: cubanfoodinternationalllc@gmail.com, antonio@siteoptz.com');
-        console.log('📧 Customer confirmation sent to:', customerEmail);
-        console.log('📧 Reply-to address configured:', customerEmail);
-        console.log('Web3Forms email delivery completed!');
+        console.log('📧 Business recipients: cubanfoodinternationalllc@gmail.com, antonio@siteoptz.com');
+        console.log('✅ Customer thank you email sent via Web3Forms');
+        console.log('📧 Customer recipient:', customerEmail);
+        console.log('📞 Contact info provided: (832) 410-5035');
+        console.log('Web3Forms email delivery completed successfully!');
         
         if (isPaymentOrder) {
             showPaymentSuccess(orderData.paymentAmount);
