@@ -763,10 +763,10 @@ function showCheckoutMessage(message) {
 
 // Authorize.Net Configuration
 const authNetConfig = {
-    clientKey: '4DX28g543cLwMy5u',  // Public client key
+    clientKey: '4DX28g543cLwMy5u',  // Public client key  
     apiLoginID: '38fAR7rP',
-    transactionKey: '3vMZvn92aMMSfzcyG5888qTUwjvNhY983jAuuy6mk9gZZFwFYv4bhF55856RA9SA',
-    environment: 'production' // Using production with provided credentials
+    transactionKey: '4DX28g543cLwMy5u', // Using the shorter transaction key
+    environment: 'sandbox' // Testing with sandbox first to verify credentials
 };
 
 // Initialize payment modal
@@ -1147,6 +1147,9 @@ function processModalPayment() {
         return;
     }
     console.log('Accept.js is loaded successfully');
+    console.log('Environment:', authNetConfig.environment);
+    console.log('API Login ID:', authNetConfig.apiLoginID);
+    console.log('Client Key:', authNetConfig.clientKey);
 
     // TEMPORARY BYPASS FOR TESTING - Remove this after debugging
     if (window.location.search.includes('bypass=true')) {
