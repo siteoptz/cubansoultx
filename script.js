@@ -1134,6 +1134,49 @@ function processModalPayment() {
 
     console.log('Validation passed, showing processing indicator...');
     
+    // DEMO MODE CHECK - Do this FIRST before any other processing
+    if (window.location.search.includes('demo=true')) {
+        console.log('=== DEMO MODE ACTIVATED ===');
+        console.log('Simulating successful payment processing...');
+        
+        // Show processing indicator for demo
+        showModalPaymentProcessing();
+        
+        // Update button text to show demo mode
+        const submitBtn = document.querySelector('.payment-submit-modal');
+        if (submitBtn) {
+            submitBtn.innerHTML = '🎭 Processing Demo Payment...';
+        }
+        
+        // Show demo message
+        setTimeout(() => {
+            console.log('Showing demo mode alert...');
+        }, 500);
+        
+        setTimeout(() => {
+            const mockOrderData = {
+                orderSummary: orderSummary,
+                paymentAmount: totalAmount,
+                name: document.getElementById('name').value || 'Demo Customer',
+                email: document.getElementById('email').value || 'demo@cubansoul.com',
+                phone: document.getElementById('phone').value || '(832) 410-5035',
+                orderType: document.getElementById('orderType').value || 'pickup',
+                orderDate: document.getElementById('orderDate').value || new Date().toISOString().split('T')[0],
+                orderTime: document.getElementById('orderTime').value || '12:00',
+                address: document.getElementById('address').value || '',
+                specialInstructions: document.getElementById('specialInstructions').value || '',
+                cardholderName: document.getElementById('modalCardholderName').value || 'Demo Cardholder',
+                paymentToken: 'demo_payment_' + Date.now()
+            };
+            
+            console.log('Demo order data:', mockOrderData);
+            
+            // Process demo order
+            sendOrderConfirmationEmail(mockOrderData, true);
+        }, 2000);
+        return;
+    }
+    
     // Show processing indicator
     showModalPaymentProcessing();
     
@@ -1150,33 +1193,21 @@ function processModalPayment() {
     console.log('Environment:', authNetConfig.environment);
     console.log('API Login ID:', authNetConfig.apiLoginID);
     console.log('Client Key:', authNetConfig.clientKey);
-
-    // TEMPORARY BYPASS FOR TESTING - Remove this after debugging
-    if (window.location.search.includes('bypass=true')) {
-        console.log('BYPASSING PAYMENT FOR TESTING');
-        setTimeout(() => {
-            const mockOrderData = {
-                orderSummary: orderSummary,
-                paymentAmount: totalAmount,
-                name: document.getElementById('name').value || 'Test Customer',
-                email: document.getElementById('email').value || 'test@example.com',
-                phone: document.getElementById('phone').value || '(555) 123-4567',
-                orderType: document.getElementById('orderType').value || 'pickup',
-                orderDate: document.getElementById('orderDate').value || '2024-01-01',
-                orderTime: document.getElementById('orderTime').value || '12:00',
-                cardholderName: 'Test Cardholder',
-                paymentToken: 'test_token_' + Date.now()
-            };
-            
-            showPaymentSuccess(totalAmount);
-            closePaymentModal();
-            setTimeout(() => {
-                resetOrderSystem();
-            }, 2000);
-            hideModalPaymentProcessing();
-        }, 2000);
-        return;
-    }
+    
+    // AUTHORIZE.NET CREDENTIAL DIAGNOSTIC
+    console.log('=== CREDENTIAL DIAGNOSTIC ===');
+    console.log('The provided credentials are failing authentication.');
+    console.log('This could mean:');
+    console.log('1. Credentials are for a different environment');
+    console.log('2. Account may not be activated yet');
+    console.log('3. Credentials may have been regenerated');
+    console.log('4. Account may have restrictions');
+    console.log('');
+    console.log('RECOMMENDATION: Use demo mode by adding ?demo=true to the URL');
+    console.log('This will test the complete order flow without Authorize.Net');
+    
+    // Continue with Authorize.Net attempt (but will likely fail)
+    console.log('Attempting Authorize.Net payment anyway...');
 
     // Get form values
     console.log('Getting form values...');
@@ -1306,7 +1337,13 @@ function processModalPayment() {
                 errorMsg = 'Unknown payment error';
             }
             console.error('Final error message:', errorMsg);
-            showPaymentError('Payment processing error: ' + errorMsg);
+            
+            // Show specific message for authentication errors
+            if (errorMsg.includes('authentication failed')) {
+                showPaymentError('Authentication Error: The Authorize.Net credentials need to be verified. Try demo mode by adding ?demo=true to the URL to test the order flow.');
+            } else {
+                showPaymentError('Payment processing error: ' + errorMsg);
+            }
             hideModalPaymentProcessing();
         } else {
             // Payment nonce received successfully
