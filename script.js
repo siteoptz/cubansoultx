@@ -1669,9 +1669,11 @@ ${isPaymentOrder ? 'Payment Token: ' + orderData.paymentToken : ''}
         web3FormsData.append('from_name', 'Cuban Soul Order System');
         web3FormsData.append('replyto', customerEmail);
         
-        // Send email via Web3Forms API
+        // Send business email via Web3Forms API
+        let businessEmailSuccess = false;
         try {
-            console.log('Sending email to Web3Forms API...');
+            console.log('Sending business email to Web3Forms API...');
+            console.log('Customer email for reply-to:', customerEmail);
             const response = await fetch('https://api.web3forms.com/submit', {
                 method: 'POST',
                 body: web3FormsData
@@ -1682,17 +1684,29 @@ ${isPaymentOrder ? 'Payment Token: ' + orderData.paymentToken : ''}
             if (result.success) {
                 console.log('✅ Business email sent successfully via Web3Forms');
                 console.log('📧 Recipients: cubanfoodinternationalllc@gmail.com, antonio@siteoptz.com');
-                
-                // Send customer thank you email with order details
-                const customerData = new FormData();
-                customerData.append('access_key', '3c652a51-87a6-4ac8-9e03-9dbfbedef8c0');
-                customerData.append('name', 'Cuban Soul Restaurant');
-                customerData.append('email', 'cubanfoodinternationalllc@gmail.com');
-                customerData.append('phone', '(832) 410-5035');
-                customerData.append('subject', `Thank you for your order, ${orderData.name}!`);
-                
-                // Create customer-friendly email message
-                const customerMessage = `Dear ${orderData.name},
+                businessEmailSuccess = true;
+            } else {
+                console.error('❌ Failed to send business email:', result.message);
+                console.error('Business email result:', result);
+            }
+        } catch (error) {
+            console.error('❌ Error sending business email via Web3Forms:', error);
+        }
+        
+        // Send customer thank you email (independent of business email success)
+        try {
+            console.log('Sending customer thank you email...');
+            console.log('Customer email address:', customerEmail);
+            
+            const customerData = new FormData();
+            customerData.append('access_key', '3c652a51-87a6-4ac8-9e03-9dbfbedef8c0');
+            customerData.append('name', 'Cuban Soul Restaurant');
+            customerData.append('email', 'cubanfoodinternationalllc@gmail.com');
+            customerData.append('phone', '(832) 410-5035');
+            customerData.append('subject', `Thank you for your order, ${orderData.name}!`);
+            
+            // Create customer-friendly email message
+            const customerMessage = `Dear ${orderData.name},
 
 Thank you for choosing Cuban Soul! We're excited to prepare your delicious order.
 
@@ -1727,30 +1741,30 @@ The Cuban Soul Team
 Cuban Soul Restaurant
 Phone: (832) 410-5035
 Email: cubanfoodinternationalllc@gmail.com`;
-                
-                customerData.append('message', customerMessage);
-                customerData.append('to', customerEmail);
-                customerData.append('from_name', 'Cuban Soul Restaurant');
-                customerData.append('replyto', 'cubanfoodinternationalllc@gmail.com');
-                
-                const customerResponse = await fetch('https://api.web3forms.com/submit', {
-                    method: 'POST',
-                    body: customerData
-                });
-                
-                const customerResult = await customerResponse.json();
-                
-                if (customerResult.success) {
-                    console.log('✅ Customer thank you email sent successfully');
-                    console.log(`📧 Customer email sent to: ${customerEmail}`);
-                } else {
-                    console.error('❌ Failed to send customer thank you email:', customerResult.message);
-                }
+            
+            customerData.append('message', customerMessage);
+            customerData.append('to', customerEmail);
+            customerData.append('from_name', 'Cuban Soul Restaurant');
+            customerData.append('replyto', 'cubanfoodinternationalllc@gmail.com');
+            
+            console.log('Submitting customer email to Web3Forms...');
+            const customerResponse = await fetch('https://api.web3forms.com/submit', {
+                method: 'POST',
+                body: customerData
+            });
+            
+            const customerResult = await customerResponse.json();
+            console.log('Customer email result:', customerResult);
+            
+            if (customerResult.success) {
+                console.log('✅ Customer thank you email sent successfully');
+                console.log(`📧 Customer email sent to: ${customerEmail}`);
             } else {
-                console.error('❌ Failed to send business email:', result.message);
+                console.error('❌ Failed to send customer thank you email:', customerResult.message);
+                console.error('Customer email error details:', customerResult);
             }
         } catch (error) {
-            console.error('❌ Error sending emails via Web3Forms:', error);
+            console.error('❌ Error sending customer email via Web3Forms:', error);
         }
         
         // Copy order details to clipboard for easy access
@@ -1885,8 +1899,29 @@ function createFormSubmitEmailBody(orderData, isPaymentOrder = false) {
         emailBody += `Special Instructions:\n${orderData.specialInstructions}\n\n`;
     }
     
-    // Order Total
-    emailBody += `ORDER TOTAL: $${orderSummary.total.toFixed(2)}\n\n`;
+    // Order Summary with Breakdown
+    emailBody += `ORDER SUMMARY:\n`;
+    const isDelivery = orderData.orderType === 'delivery';
+    let subtotal = orderSummary.subtotal || 0;
+    
+    // If subtotal not available, calculate from individual items
+    if (!subtotal) {
+        subtotal = (orderSummary.package?.price || 0);
+        orderSummary.extraSides.forEach(side => subtotal += side.price);
+        orderSummary.desserts.forEach(dessert => subtotal += dessert.price);
+    }
+    
+    emailBody += `Subtotal: $${subtotal.toFixed(2)}\n`;
+    
+    if (isDelivery) {
+        emailBody += `Delivery Fee: $15.00\n`;
+        emailBody += `*Delivery available up to 10 miles from The Woodlands\n`;
+    }
+    
+    const taxableAmount = isDelivery ? subtotal + 15 : subtotal;
+    const tax = taxableAmount * 0.0825;
+    emailBody += `Tax (8.25%): $${tax.toFixed(2)}\n`;
+    emailBody += `TOTAL: $${orderSummary.total.toFixed(2)}\n\n`;
     
     // Payment Information (if applicable)
     if (isPaymentOrder) {
