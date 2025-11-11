@@ -804,6 +804,40 @@ function initializePaymentModal() {
         }
     });
 
+    // Add card number formatting
+    const cardNumberInput = document.getElementById('modalCardNumber');
+    if (cardNumberInput) {
+        cardNumberInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, ''); // Remove non-digits
+            let formattedValue = value.replace(/(\d{4})/g, '$1 ').trim(); // Add space every 4 digits
+            if (formattedValue.length > 19) { // Limit to 16 digits + 3 spaces
+                formattedValue = formattedValue.substring(0, 19);
+            }
+            e.target.value = formattedValue;
+        });
+    }
+
+    // Add expiry date formatting
+    const expiryInput = document.getElementById('modalExpiryDate');
+    if (expiryInput) {
+        expiryInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, ''); // Remove non-digits
+            if (value.length >= 2) {
+                value = value.substring(0, 2) + '/' + value.substring(2, 4);
+            }
+            e.target.value = value;
+        });
+    }
+
+    // Add CVV formatting (digits only)
+    const cvvInput = document.getElementById('modalCvv');
+    if (cvvInput) {
+        cvvInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '').substring(0, 4); // Max 4 digits
+            e.target.value = value;
+        });
+    }
+
     // Handle payment form submission
     if (paymentForm) {
         paymentForm.addEventListener('submit', function(e) {
@@ -1143,13 +1177,32 @@ function processModalPayment() {
 
     // Get form values
     console.log('Getting form values...');
-    const cardNumber = document.getElementById('modalCardNumber').value.replace(/\s/g, '');
+    const cardNumberRaw = document.getElementById('modalCardNumber').value;
+    const cardNumber = cardNumberRaw.replace(/\s/g, '').replace(/\D/g, ''); // Remove all non-digits
     const expiryDate = document.getElementById('modalExpiryDate').value;
-    const cvv = document.getElementById('modalCvv').value;
+    const cvv = document.getElementById('modalCvv').value.replace(/\D/g, ''); // Remove non-digits
     
-    console.log('Card number length:', cardNumber.length);
+    console.log('Raw card number:', cardNumberRaw);
+    console.log('Cleaned card number length:', cardNumber.length);
+    console.log('Card number (masked):', cardNumber ? cardNumber.substring(0, 4) + '****' + cardNumber.substring(cardNumber.length - 4) : 'empty');
     console.log('Expiry date:', expiryDate);
     console.log('CVV length:', cvv.length);
+    
+    // Validate card number
+    if (!cardNumber || cardNumber.length < 13 || cardNumber.length > 19) {
+        console.error('ERROR: Invalid card number length:', cardNumber.length);
+        showPaymentError('Please enter a valid credit card number (13-19 digits)');
+        hideModalPaymentProcessing();
+        return;
+    }
+    
+    // Validate CVV
+    if (!cvv || cvv.length < 3 || cvv.length > 4) {
+        console.error('ERROR: Invalid CVV length:', cvv.length);
+        showPaymentError('Please enter a valid CVV (3-4 digits)');
+        hideModalPaymentProcessing();
+        return;
+    }
 
     // Validate expiry date format
     if (!expiryDate || !expiryDate.includes('/')) {
