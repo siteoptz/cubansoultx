@@ -1634,9 +1634,6 @@ async function sendOrderConfirmationEmail(orderData, isPaymentOrder = false) {
         // Create detailed order summary
         let orderDetails = createFormSubmitEmailBody(orderData, isPaymentOrder);
         
-        // Show order success with detailed information for manual processing
-        console.log('Displaying order confirmation with contact instructions...');
-        
         // Store order details for business follow-up
         const orderSummaryText = `
 === NEW CUBAN SOUL ORDER ===
@@ -1657,6 +1654,54 @@ ${orderDetails}
 ${isPaymentOrder ? 'Payment Token: ' + orderData.paymentToken : ''}
         `.trim();
         
+        console.log('Sending order confirmation emails...');
+        
+        // Prepare FormSubmit data for business email
+        const formSubmitData = new FormData();
+        formSubmitData.append('name', orderData.name);
+        formSubmitData.append('email', customerEmail);
+        formSubmitData.append('phone', orderData.phone);
+        formSubmitData.append('_subject', subject);
+        formSubmitData.append('message', orderSummaryText);
+        formSubmitData.append('_replyto', customerEmail);
+        formSubmitData.append('_cc', 'antonio@siteoptz.com');
+        formSubmitData.append('_next', window.location.href);
+        
+        // Send email to business
+        console.log('Sending email to cubanfoodinternationalllc@gmail.com...');
+        const businessResponse = await fetch('https://formsubmit.co/cubanfoodinternationalllc@gmail.com', {
+            method: 'POST',
+            body: formSubmitData
+        });
+        
+        if (businessResponse.ok) {
+            console.log('✅ Business email sent successfully');
+        } else {
+            console.error('❌ Failed to send business email:', businessResponse.status);
+        }
+        
+        // Send separate email to customer
+        const customerFormData = new FormData();
+        customerFormData.append('name', 'Cuban Soul Restaurant');
+        customerFormData.append('email', 'cubanfoodinternationalllc@gmail.com');
+        customerFormData.append('phone', '(832) 410-5035');
+        customerFormData.append('_subject', `Order Confirmation - ${orderData.name}`);
+        customerFormData.append('message', `Dear ${orderData.name},\n\nThank you for your order with Cuban Soul!\n\n${orderDetails}\n\nWe will contact you shortly to confirm your order details.\n\nBest regards,\nCuban Soul Team\nPhone: (832) 410-5035\nEmail: cubanfoodinternationalllc@gmail.com\n\n"Sabor Que Viene Del Alma"`);
+        customerFormData.append('_replyto', 'cubanfoodinternationalllc@gmail.com');
+        customerFormData.append('_next', window.location.href);
+        
+        console.log('Sending confirmation email to customer:', customerEmail);
+        const customerResponse = await fetch(`https://formsubmit.co/${customerEmail}`, {
+            method: 'POST',
+            body: customerFormData
+        });
+        
+        if (customerResponse.ok) {
+            console.log('✅ Customer email sent successfully');
+        } else {
+            console.error('❌ Failed to send customer email:', customerResponse.status);
+        }
+        
         // Copy order details to clipboard for easy access
         try {
             navigator.clipboard.writeText(orderSummaryText).then(() => {
@@ -1669,21 +1714,17 @@ ${isPaymentOrder ? 'Payment Token: ' + orderData.paymentToken : ''}
         // Show success message with instructions
         setTimeout(() => {
             const message = isPaymentOrder ? 
-                `Payment Successful! 🎉\n\nYour order has been processed.\nTotal: $${orderData.paymentAmount.toFixed(2)}\n\nA Cuban Soul team member will contact you at:\n📧 ${customerEmail}\n📞 ${orderData.phone}\n\nExpected contact within 24 hours.\n\n📋 Order details have been saved for processing.` :
-                `Order Request Submitted! 📝\n\nThank you for your interest!\nA Cuban Soul team member will contact you to confirm your order and arrange payment.\n\nContact info:\n📧 ${customerEmail}\n📞 ${orderData.phone}\n\nExpected contact within 24 hours.`;
+                `Payment Successful! 🎉\n\nYour order has been processed.\nTotal: $${orderData.paymentAmount.toFixed(2)}\n\nConfirmation emails sent to:\n📧 ${customerEmail}\n📧 cubanfoodinternationalllc@gmail.com\n\nExpected contact within 24 hours.` :
+                `Order Request Submitted! 📝\n\nConfirmation emails sent to:\n📧 ${customerEmail}\n📧 cubanfoodinternationalllc@gmail.com\n\nA Cuban Soul team member will contact you to confirm your order and arrange payment.\n\nExpected contact within 24 hours.`;
                 
             alert(message);
         }, 500);
         
-        console.log('Order summary for business follow-up:');
-        console.log(orderSummaryText);
-        
-        // Always proceed with success flow regardless of email status
         console.log('=== EMAIL DELIVERY SUMMARY ===');
-        console.log('Company notification: Attempted to cubanfoodinternationalllc@gmail.com');
-        console.log('Customer confirmation: Attempted to', customerEmail);
-        console.log('CC recipients: antonio@siteoptz.com');
-        console.log('Email sending completed, proceeding with success flow...');
+        console.log('✅ Company notification sent to: cubanfoodinternationalllc@gmail.com');
+        console.log('✅ Customer confirmation sent to:', customerEmail);
+        console.log('✅ CC recipient: antonio@siteoptz.com');
+        console.log('Email sending completed successfully!');
         
         if (isPaymentOrder) {
             showPaymentSuccess(orderData.paymentAmount);
