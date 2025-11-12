@@ -1735,29 +1735,29 @@ Cuban Soul Restaurant
 Phone: (832) 410-5035
 Email: cubanfoodinternationalllc@gmail.com`;
 
-            // Create customer email - FORCE recipient to be customer's email
+            // Create customer email with CORRECT configuration
             const customerFormData = new FormData();
             customerFormData.append('access_key', '3c652a51-87a6-4ac8-9e03-9dbfbedef8c0');
             
-            // The KEY is that 'email' field in Web3Forms determines WHO RECEIVES the email
-            customerFormData.append('email', customerEmail); // RECIPIENT: Customer's email
-            customerFormData.append('name', orderData.name); // Customer's name
+            // CORRECT Web3Forms configuration for customer email
+            customerFormData.append('name', 'Cuban Soul Restaurant'); // Sender name
+            customerFormData.append('email', 'cubanfoodinternationalllc@gmail.com'); // Sender email (FROM)
             customerFormData.append('subject', `Thank you for your order, ${orderData.name}!`);
             customerFormData.append('message', customerMessage);
             
-            // From/reply configuration
-            customerFormData.append('from_name', 'Cuban Soul Restaurant');
-            customerFormData.append('from_email', 'cubanfoodinternationalllc@gmail.com');
-            customerFormData.append('reply_to', 'cubanfoodinternationalllc@gmail.com');
+            // RECIPIENT configuration
+            customerFormData.append('to', customerEmail); // TO: Customer's email
+            customerFormData.append('_replyto', 'cubanfoodinternationalllc@gmail.com'); // REPLY-TO: Business email
             
-            // Remove any template/format that might interfere
+            // Clean configuration
             customerFormData.append('_captcha', 'false');
             customerFormData.append('_autoresponse', 'false');
+            customerFormData.append('_template', 'box');
             
-            console.log(`🎯 CUSTOMER EMAIL RECIPIENT: ${customerEmail}`);
-            console.log('🚫 Email should NOT go to antonio@siteoptz.com');
-            console.log('🚫 Email should NOT go to cubanfoodinternationalllc@gmail.com');
-            console.log('✅ ONLY customer receives this thank you email');
+            console.log(`📧 TO: ${customerEmail} (customer receives email)`);
+            console.log(`📧 FROM: cubanfoodinternationalllc@gmail.com (Cuban Soul)`);
+            console.log(`📧 REPLY-TO: cubanfoodinternationalllc@gmail.com (business email)`);
+            console.log('✅ Customer gets email, replies go to business');
             
             const customerResponse = await fetch('https://api.web3forms.com/submit', {
                 method: 'POST',
