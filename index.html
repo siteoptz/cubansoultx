@@ -9,6 +9,15 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Croissant+One&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
+    <!-- EmailJS for customer email delivery -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <script type="text/javascript">
+        (function(){
+            emailjs.init({
+                publicKey: 'rMaG6YQCZKSf5S6D6', // EmailJS public key
+            });
+        })();
+    </script>
 </head>
 <body>
     <!-- Header -->

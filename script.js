@@ -1693,9 +1693,9 @@ ${isPaymentOrder ? 'Payment Token: ' + orderData.paymentToken : ''}
             console.error('❌ Error sending business email via Web3Forms:', error);
         }
         
-        // Send customer thank you email DIRECTLY to customer (NO business emails)
+        // Send customer thank you email using EmailJS (alternative to Web3Forms)
         try {
-            console.log('Sending customer thank you email DIRECTLY to customer...');
+            console.log('Attempting to send customer thank you email...');
             console.log(`Target customer email: ${customerEmail}`);
             
             // Create customer-friendly email message
@@ -1735,53 +1735,82 @@ Cuban Soul Restaurant
 Phone: (832) 410-5035
 Email: cubanfoodinternationalllc@gmail.com`;
 
-            // Create customer email with CORRECT configuration
-            const customerFormData = new FormData();
-            customerFormData.append('access_key', '3c652a51-87a6-4ac8-9e03-9dbfbedef8c0');
-            
-            // CORRECT Web3Forms configuration for customer email
-            customerFormData.append('name', 'Cuban Soul Restaurant'); // Sender name
-            customerFormData.append('email', 'cubanfoodinternationalllc@gmail.com'); // Sender email (FROM)
-            customerFormData.append('subject', `Thank you for your order, ${orderData.name}!`);
-            customerFormData.append('message', customerMessage);
-            
-            // RECIPIENT configuration
-            customerFormData.append('to', customerEmail); // TO: Customer's email
-            customerFormData.append('_replyto', 'cubanfoodinternationalllc@gmail.com'); // REPLY-TO: Business email
-            
-            // Clean configuration
-            customerFormData.append('_captcha', 'false');
-            customerFormData.append('_autoresponse', 'false');
-            customerFormData.append('_template', 'box');
-            
-            console.log(`📧 TO: ${customerEmail} (customer receives email)`);
-            console.log(`📧 FROM: cubanfoodinternationalllc@gmail.com (Cuban Soul)`);
-            console.log(`📧 REPLY-TO: cubanfoodinternationalllc@gmail.com (business email)`);
-            console.log('✅ Customer gets email, replies go to business');
-            
-            const customerResponse = await fetch('https://api.web3forms.com/submit', {
-                method: 'POST',
-                body: customerFormData
-            });
-            
-            const customerResult = await customerResponse.json();
-            console.log('Customer email API result:', customerResult);
-            
-            if (customerResult.success) {
-                console.log(`✅ Customer thank you email sent DIRECTLY to: ${customerEmail}`);
-                console.log('✅ NO business emails received this thank you email');
-            } else {
-                console.error('❌ Failed to send customer thank you email:', customerResult.message);
-                console.error('Customer email error details:', customerResult);
+            // Try EmailJS as alternative email service
+            if (typeof emailjs !== 'undefined') {
+                console.log('📧 Using EmailJS for customer email...');
                 
-                // If Web3Forms fails, log the issue clearly
-                console.error('🚨 CUSTOMER EMAIL NOT DELIVERED - Web3Forms routing issue');
-                console.error(`🚨 Email should go to: ${customerEmail}`);
-                console.error('🚨 NOT to business emails');
+                const emailParams = {
+                    to_email: customerEmail,
+                    customer_name: orderData.name,
+                    from_name: 'Cuban Soul Restaurant',
+                    subject: `Thank you for your order, ${orderData.name}!`,
+                    message: customerMessage,
+                    reply_to: 'cubanfoodinternationalllc@gmail.com'
+                };
+                
+                // Use EmailJS service - you'll need to set up a template
+                const result = await emailjs.send('service_cuban_soul', 'template_customer_thanks', emailParams);
+                console.log(`✅ Customer email sent via EmailJS to: ${customerEmail}`);
+                
+            } else {
+                // Fallback: Use direct email client approach
+                console.log('📧 Creating mailto link for customer email...');
+                
+                const emailSubject = encodeURIComponent(`Thank you for your order, ${orderData.name}!`);
+                const emailBody = encodeURIComponent(customerMessage);
+                const mailtoLink = `mailto:${customerEmail}?subject=${emailSubject}&body=${emailBody}`;
+                
+                // Create invisible link and click it to open email client
+                const emailLink = document.createElement('a');
+                emailLink.href = mailtoLink;
+                emailLink.style.display = 'none';
+                document.body.appendChild(emailLink);
+                
+                // Store email details for manual sending
+                console.log('📋 Email details stored for manual processing:');
+                console.log(`TO: ${customerEmail}`);
+                console.log(`SUBJECT: Thank you for your order, ${orderData.name}!`);
+                console.log(`MESSAGE: ${customerMessage}`);
+                
+                // Show alert to user about manual email sending
+                setTimeout(() => {
+                    const customerEmailStatus = confirm(
+                        `Customer email system needs manual setup.\n\n` +
+                        `Customer: ${orderData.name}\n` +
+                        `Email: ${customerEmail}\n\n` +
+                        `Would you like to open an email client to send the thank you email manually?\n\n` +
+                        `(Click OK to open email client, Cancel to skip)`
+                    );
+                    
+                    if (customerEmailStatus) {
+                        emailLink.click();
+                    }
+                }, 2000);
+                
+                document.body.removeChild(emailLink);
+                console.log('✅ Customer email fallback prepared');
             }
+            
         } catch (error) {
-            console.error('❌ Error sending customer email via Web3Forms:', error);
-            console.error(`🚨 Customer ${customerEmail} did not receive thank you email`);
+            console.error('❌ Error with customer email delivery:', error);
+            
+            // Final fallback: Log email content for manual sending
+            console.log('📧 MANUAL EMAIL REQUIRED:');
+            console.log(`TO: ${customerEmail}`);
+            console.log(`FROM: Cuban Soul Restaurant <cubanfoodinternationalllc@gmail.com>`);
+            console.log(`SUBJECT: Thank you for your order, ${orderData.name}!`);
+            console.log('MESSAGE:', customerMessage);
+            
+            // Show user notification about manual email
+            setTimeout(() => {
+                alert(
+                    `⚠️ Customer Email Setup Required\n\n` +
+                    `Please manually send thank you email to:\n` +
+                    `${customerEmail}\n\n` +
+                    `Subject: Thank you for your order, ${orderData.name}!\n\n` +
+                    `Email content has been logged to console.`
+                );
+            }, 1000);
         }
         
         // Copy order details to clipboard for easy access
