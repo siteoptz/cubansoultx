@@ -1764,6 +1764,97 @@ html {
     }
 }
 
+/* Extra Sides with Quantity Selectors */
+.side-option-with-quantity {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    margin-bottom: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    border: 2px solid rgba(242, 218, 178, 0.3);
+    transition: all 0.3s ease;
+}
+
+.side-option-with-quantity:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: #F2DAB2;
+}
+
+.side-info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.side-name {
+    font-weight: 500;
+    color: #243746;
+    font-size: 1rem;
+}
+
+.side-price {
+    font-weight: bold;
+    color: #243746;
+    font-size: 1.1rem;
+}
+
+.quantity-selector {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.quantity-selector label {
+    font-size: 0.9rem;
+    color: #243746;
+    font-weight: 500;
+}
+
+.quantity-selector select {
+    padding: 8px 12px;
+    border: 2px solid #243746;
+    border-radius: 5px;
+    background: white;
+    color: #243746;
+    font-weight: 500;
+    font-size: 1rem;
+    min-width: 60px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.quantity-selector select:hover,
+.quantity-selector select:focus {
+    border-color: #F2DAB2;
+    outline: none;
+    box-shadow: 0 0 5px rgba(242, 218, 178, 0.5);
+}
+
+/* Responsive design for extra sides */
+@media (max-width: 768px) {
+    .side-option-with-quantity {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 12px;
+    }
+    
+    .quantity-selector {
+        align-self: stretch;
+        justify-content: space-between;
+    }
+    
+    .side-name {
+        font-size: 0.9rem;
+    }
+    
+    .side-price {
+        font-size: 1rem;
+    }
+}
+
 /* Responsive design for payment section */
 @media (max-width: 768px) {
     .form-row {

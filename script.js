@@ -254,7 +254,7 @@ document.addEventListener('DOMContentLoaded', function() {
 function initializeMenuOrderSystem() {
     const packageCheckboxes = document.querySelectorAll('input[name="package"]');
     const includedSidesCheckboxes = document.querySelectorAll('input[name="includedSides"]');
-    const extraSidesCheckboxes = document.querySelectorAll('input[name="extraSides"]');
+    const extraSidesSelects = document.querySelectorAll('select[name="extraSides"]');
     const addonsCheckboxes = document.querySelectorAll('input[name="addons"]');
     const dessertsCheckboxes = document.querySelectorAll('input[name="desserts"]');
     const sidesCounter = document.getElementById('sidesCounter');
@@ -297,8 +297,12 @@ function initializeMenuOrderSystem() {
         });
     });
 
-    // Handle extra sides, add-ons, and desserts with price calculation
-    const allPaidCheckboxes = [...extraSidesCheckboxes, ...dessertsCheckboxes];
+    // Handle extra sides (now dropdowns), add-ons, and desserts with price calculation
+    extraSidesSelects.forEach(select => {
+        select.addEventListener('change', updateOrderTotal);
+    });
+    
+    const allPaidCheckboxes = [...addonsCheckboxes, ...dessertsCheckboxes];
     
     allPaidCheckboxes.forEach(checkbox => {
         checkbox.addEventListener('change', function() {
@@ -335,7 +339,7 @@ function enableMenuSections() {
 // Update order total
 function updateOrderTotal() {
     const selectedPackages = document.querySelectorAll('input[name="package"]:checked');
-    const extraSidesCheckboxes = document.querySelectorAll('input[name="extraSides"]:checked');
+    const extraSidesSelects = document.querySelectorAll('select[name="extraSides"]');
     const dessertsCheckboxes = document.querySelectorAll('input[name="desserts"]:checked');
     const totalAmountElement = document.getElementById('totalAmount');
     const orderType = document.getElementById('orderType');
@@ -347,10 +351,13 @@ function updateOrderTotal() {
         subtotal += parseFloat(selectedPackage.dataset.price);
     });
 
-    // Calculate extra sides total
-    extraSidesCheckboxes.forEach(checkbox => {
-        const price = parseFloat(checkbox.dataset.price);
-        subtotal += price;
+    // Calculate extra sides total from dropdowns
+    extraSidesSelects.forEach(select => {
+        const quantity = parseInt(select.value);
+        const price = parseFloat(select.dataset.price);
+        if (!isNaN(price) && !isNaN(quantity) && quantity > 0) {
+            subtotal += price * quantity;
+        }
     });
 
     // Calculate desserts total
@@ -456,12 +463,17 @@ function getCurrentOrderSummary() {
         dressingSelections.soul = soulDressing.value;
     }
 
-    // Get selected extra sides
-    document.querySelectorAll('input[name="extraSides"]:checked').forEach(checkbox => {
-        extraSides.push({
-            item: checkbox.value,
-            price: parseFloat(checkbox.dataset.price)
-        });
+    // Get selected extra sides from dropdowns
+    document.querySelectorAll('select[name="extraSides"]').forEach(select => {
+        const quantity = parseInt(select.value);
+        if (quantity > 0) {
+            extraSides.push({
+                item: select.dataset.item,
+                quantity: quantity,
+                price: parseFloat(select.dataset.price),
+                totalPrice: parseFloat(select.dataset.price) * quantity
+            });
+        }
     });
 
     // Get selected add-ons
@@ -733,7 +745,7 @@ function prefillOrderForm(orderSummary) {
         if (orderSummary.extraSides.length > 0) {
             orderText += 'Extra Sides:\n';
             orderSummary.extraSides.forEach(side => {
-                orderText += `- ${side.item} - $${side.price}\n`;
+                orderText += `- ${side.item} (Qty: ${side.quantity}) - $${side.totalPrice.toFixed(2)}\n`;
             });
             orderText += '\n';
         }
@@ -764,7 +776,7 @@ function prefillOrderForm(orderSummary) {
             });
         }
         orderSummary.extraSides.forEach(side => {
-            subtotal += side.price;
+            subtotal += side.totalPrice;
         });
         orderSummary.desserts.forEach(dessert => {
             subtotal += dessert.price;
@@ -1004,7 +1016,7 @@ function populateModalOrderSummary(orderSummary) {
     if (orderSummary.extraSides.length > 0) {
         summaryHTML += `<div class="order-item"><strong>Extra Sides:</strong></div>`;
         orderSummary.extraSides.forEach(side => {
-            summaryHTML += `<div class="order-subitem">• ${side.item} - $${side.price}</div>`;
+            summaryHTML += `<div class="order-subitem">• ${side.item} (Qty: ${side.quantity}) - $${side.totalPrice.toFixed(2)}</div>`;
         });
     }
     
@@ -2007,7 +2019,7 @@ function createFormSubmitEmailBody(orderData, isPaymentOrder = false) {
         if (orderSummary.packages) {
             orderSummary.packages.forEach(pkg => subtotal += pkg.price);
         }
-        orderSummary.extraSides.forEach(side => subtotal += side.price);
+        orderSummary.extraSides.forEach(side => subtotal += side.totalPrice);
         orderSummary.desserts.forEach(dessert => subtotal += dessert.price);
     }
     
