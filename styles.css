@@ -860,6 +860,7 @@ html {
     display: flex;
     flex-direction: column;
     gap: 30px;
+    margin-right: 340px; /* Prevent overlap with fixed order total box */
 }
 
 .package-selection {
@@ -1110,6 +1111,11 @@ html {
     .menu-order-system {
         flex-direction: column;
         gap: 20px;
+    }
+    
+    .menu-main-content {
+        margin-right: 0; /* Remove margin on mobile since order total is at bottom */
+        padding-bottom: 120px; /* Add padding for mobile sticky order total */
     }
     
     .order-total-sidebar {

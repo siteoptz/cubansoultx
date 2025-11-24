@@ -848,18 +848,32 @@ function prefillOrderForm(orderSummary) {
         const orderType = document.getElementById('orderType');
         const isDelivery = orderType && orderType.value === 'delivery';
         
-        // Add order summary with breakdown
-        orderText += '--- ORDER SUMMARY ---\n';
-        orderText += `Subtotal: $${subtotal.toFixed(2)}\n`;
+        // Calculate service fee (20% or $85 minimum, whichever is higher) 
+        const twentyPercent = subtotal * 0.20;
+        const serviceFee = Math.max(twentyPercent, 85.00);
         
+        // Calculate tax on subtotal + service fee
+        const taxableAmount = subtotal + serviceFee;
+        const tax = taxableAmount * 0.0825;
+        
+        let deliveryFee = 0;
         if (isDelivery) {
-            orderText += `Delivery Fee: $15.00\n`;
+            deliveryFee = 15.00;
         }
         
-        const taxableAmount = isDelivery ? subtotal + 15 : subtotal;
-        const tax = taxableAmount * 0.0825;
+        const calculatedTotal = subtotal + serviceFee + deliveryFee + tax;
+        
+        // Add order summary with breakdown (match shopping cart exactly)
+        orderText += '--- ORDER BREAKDOWN ---\n';
+        orderText += `Subtotal: $${subtotal.toFixed(2)}\n`;
+        orderText += `Service Fee: $${serviceFee.toFixed(2)}\n`;
+        
+        if (isDelivery) {
+            orderText += `Delivery Fee: $${deliveryFee.toFixed(2)}\n`;
+        }
+        
         orderText += `Tax (8.25%): $${tax.toFixed(2)}\n`;
-        orderText += `Total: $${orderSummary.total.toFixed(2)}`;
+        orderText += `Total: $${calculatedTotal.toFixed(2)}`;
         
         if (isDelivery) {
             orderText += `\n\n*Delivery available up to 10 miles from The Woodlands`;
