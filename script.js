@@ -269,7 +269,7 @@ function initializeMenuOrderSystem() {
         });
     });
 
-    // Handle included sides (max 3)
+    // Handle included sides (max 2)
     includedSidesCheckboxes.forEach(checkbox => {
         checkbox.addEventListener('change', function() {
             const checkedSides = document.querySelectorAll('input[name="includedSides"]:checked');
@@ -279,8 +279,8 @@ function initializeMenuOrderSystem() {
                 sidesCounter.textContent = checkedSides.length;
             }
 
-            // Disable other checkboxes if 3 are selected
-            if (checkedSides.length >= 3) {
+            // Disable other checkboxes if 2 are selected
+            if (checkedSides.length >= 2) {
                 includedSidesCheckboxes.forEach(cb => {
                     if (!cb.checked) {
                         cb.disabled = true;
@@ -722,7 +722,7 @@ function prefillOrderForm(orderSummary) {
         
         // Add included sides
         if (orderSummary.includedSides.length > 0) {
-            orderText += `Included Sides (${orderSummary.includedSides.length}/3):\n`;
+            orderText += `Included Sides (${orderSummary.includedSides.length}/2):\n`;
             orderSummary.includedSides.forEach(side => {
                 orderText += `- ${side}\n`;
             });
@@ -947,8 +947,8 @@ function openPaymentModal() {
     }
     
     // Check if exactly 3 included sides are selected
-    if (orderSummary.includedSides.length !== 3) {
-        showPaymentError('Please select exactly 3 included sides from the main entrees section');
+    if (orderSummary.includedSides.length !== 2) {
+        showPaymentError('Please select exactly 2 included sides from the main entrees section');
         return;
     }
     
@@ -994,7 +994,7 @@ function populateModalOrderSummary(orderSummary) {
     
     // Add included sides
     if (orderSummary.includedSides.length > 0) {
-        summaryHTML += `<div class="order-item"><strong>Included Sides (${orderSummary.includedSides.length}/3):</strong></div>`;
+        summaryHTML += `<div class="order-item"><strong>Included Sides (${orderSummary.includedSides.length}/2):</strong></div>`;
         orderSummary.includedSides.forEach(side => {
             summaryHTML += `<div class="order-subitem">• ${side}</div>`;
         });
@@ -1484,7 +1484,7 @@ function createPaymentEmailBody(orderData) {
     
     // Add included sides
     if (orderSummary.includedSides.length > 0) {
-        orderDetails += `Included Sides (${orderSummary.includedSides.length}/3):\n`;
+        orderDetails += `Included Sides (${orderSummary.includedSides.length}/2):\n`;
         orderSummary.includedSides.forEach(side => {
             orderDetails += `- ${side}\n`;
         });
@@ -1958,7 +1958,7 @@ function createFormSubmitEmailBody(orderData, isPaymentOrder = false) {
     
     // Included Sides
     if (orderSummary.includedSides.length > 0) {
-        emailBody += `Included Sides (${orderSummary.includedSides.length}/3):\n`;
+        emailBody += `Included Sides (${orderSummary.includedSides.length}/2):\n`;
         orderSummary.includedSides.forEach(side => {
             emailBody += `- ${side}\n`;
         });
