@@ -210,6 +210,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Menu Order System Functionality
     initializeMenuOrderSystem();
     
+    // Initialize mobile order total visibility
+    toggleMobileOrderTotal();
+    
     // Initialize order details field
     setTimeout(() => {
         updateOrderDetailsField();
@@ -248,6 +251,11 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+    
+    // Handle window resize to toggle mobile behavior
+    window.addEventListener('resize', function() {
+        toggleMobileOrderTotal();
+    });
 });
 
 // Initialize Menu Order System
@@ -353,6 +361,27 @@ function handlePackageSelection(selectedCheckbox) {
                     checkbox.parentElement.style.pointerEvents = 'auto';
                 }
             });
+        }
+    }
+    
+    // Show/hide mobile order total based on package selection
+    toggleMobileOrderTotal();
+}
+
+// Toggle mobile order total visibility
+function toggleMobileOrderTotal() {
+    const anyPackageSelected = document.querySelectorAll('input[name="package"]:checked').length > 0;
+    const orderTotalSidebar = document.querySelector('.order-total-sidebar');
+    const menuMainContent = document.querySelector('.menu-main-content');
+    
+    // Only apply on mobile (screen width <= 768px)
+    if (window.innerWidth <= 768) {
+        if (anyPackageSelected) {
+            orderTotalSidebar?.classList.add('show-mobile');
+            menuMainContent?.classList.add('has-order-total');
+        } else {
+            orderTotalSidebar?.classList.remove('show-mobile');
+            menuMainContent?.classList.remove('has-order-total');
         }
     }
 }

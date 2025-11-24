@@ -1115,8 +1115,13 @@ html {
     
     .menu-main-content {
         margin-right: 0; /* Remove margin on mobile since order total is at top */
-        padding-top: 100px; /* Add padding for mobile order total at top */
+        padding-top: 20px; /* Default padding when order total is hidden */
         padding-bottom: 20px; /* Standard bottom padding */
+        transition: padding-top 0.3s ease;
+    }
+    
+    .menu-main-content.has-order-total {
+        padding-top: 100px; /* Add padding when order total is visible */
     }
     
     .order-total-sidebar {
@@ -1131,6 +1136,12 @@ html {
         backdrop-filter: none;
         padding: 0;
         order: 0;
+        display: none; /* Hidden by default on mobile */
+        transition: all 0.3s ease;
+    }
+    
+    .order-total-sidebar.show-mobile {
+        display: block; /* Show when package is selected */
     }
     
     .order-total-card {
