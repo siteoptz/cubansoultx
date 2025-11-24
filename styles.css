@@ -1115,41 +1115,65 @@ html {
     
     .menu-main-content {
         margin-right: 0; /* Remove margin on mobile since order total is at bottom */
-        padding-bottom: 120px; /* Add padding for mobile sticky order total */
+        padding-bottom: 80px; /* Reduced padding for smaller mobile order total */
     }
     
     .order-total-sidebar {
         position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
+        bottom: 20px;
+        right: 20px;
+        left: 20px;
         top: auto;
-        width: 100%;
+        width: auto;
         z-index: 1001;
-        background: rgba(36, 55, 70, 0.95);
-        backdrop-filter: blur(10px);
-        padding: 10px;
+        background: transparent;
+        backdrop-filter: none;
+        padding: 0;
         order: 0;
     }
     
     .order-total-card {
         width: 100%;
-        max-width: 400px;
-        padding: 15px;
-        margin: 0 auto;
-        border-radius: 10px;
-        box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.3);
+        max-width: none;
+        padding: 12px 15px;
+        margin: 0;
+        border-radius: 15px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        background: rgba(36, 55, 70, 0.98);
+        backdrop-filter: blur(15px);
+    }
+    
+    .order-total-card h3 {
+        font-size: 1.1rem;
+        margin-bottom: 6px;
+    }
+    
+    .total-breakdown {
+        font-size: 0.8rem;
+        margin-bottom: 6px;
+    }
+    
+    .breakdown-line {
+        margin-bottom: 2px;
+        display: flex;
+        justify-content: space-between;
+    }
+    
+    .breakdown-total {
+        margin-top: 6px;
+        padding-top: 6px;
+        border-top: 1px solid rgba(242, 218, 178, 0.3);
     }
     
     .total-amount {
-        font-size: 2rem;
-        margin-bottom: 15px;
+        font-size: 1.3rem;
+        margin-bottom: 8px;
     }
     
     .checkout-button {
-        padding: 15px 25px;
-        font-size: 1.2rem;
-        margin-top: 20px;
+        padding: 10px 20px;
+        font-size: 1rem;
+        margin-top: 8px;
     }
 }
 
