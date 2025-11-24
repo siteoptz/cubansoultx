@@ -1574,6 +1574,9 @@ html {
     margin-bottom: 20px;
     font-style: italic;
     line-height: 1.4;
+    max-width: 280px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .package-pricing {
@@ -1753,6 +1756,11 @@ html {
     .dressing-option {
         margin-right: 10px;
         font-size: 0.85rem;
+    }
+    
+    .entree-description {
+        max-width: 100%;
+        font-size: 0.9rem;
     }
 }
 
