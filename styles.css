@@ -1661,6 +1661,10 @@ html {
     margin-left: 15px;
     font-size: 0.9rem;
     color: #666;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
 }
 
 .dressing-option {
