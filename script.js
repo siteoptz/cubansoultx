@@ -256,7 +256,7 @@ function initializeMenuOrderSystem() {
     const includedSidesCheckboxes = document.querySelectorAll('input[name="includedSides"]');
     const extraSidesSelects = document.querySelectorAll('select[name="extraSides"]');
     const addonsCheckboxes = document.querySelectorAll('input[name="addons"]');
-    const dessertsCheckboxes = document.querySelectorAll('input[name="desserts"]');
+    const dessertsSelects = document.querySelectorAll('select[name="desserts"]');
     const sidesCounter = document.getElementById('sidesCounter');
     const totalAmount = document.getElementById('totalAmount');
 
@@ -302,9 +302,12 @@ function initializeMenuOrderSystem() {
         select.addEventListener('change', updateOrderTotal);
     });
     
-    const allPaidCheckboxes = [...addonsCheckboxes, ...dessertsCheckboxes];
+    dessertsSelects.forEach(select => {
+        select.addEventListener('change', updateOrderTotal);
+    });
     
-    allPaidCheckboxes.forEach(checkbox => {
+    // Handle add-ons (checkboxes only, no price impact)
+    addonsCheckboxes.forEach(checkbox => {
         checkbox.addEventListener('change', function() {
             updateOrderTotal();
         });
@@ -340,7 +343,7 @@ function enableMenuSections() {
 function updateOrderTotal() {
     const selectedPackages = document.querySelectorAll('input[name="package"]:checked');
     const extraSidesSelects = document.querySelectorAll('select[name="extraSides"]');
-    const dessertsCheckboxes = document.querySelectorAll('input[name="desserts"]:checked');
+    const dessertsSelects = document.querySelectorAll('select[name="desserts"]');
     const totalAmountElement = document.getElementById('totalAmount');
     const orderType = document.getElementById('orderType');
     
@@ -360,10 +363,13 @@ function updateOrderTotal() {
         }
     });
 
-    // Calculate desserts total
-    dessertsCheckboxes.forEach(checkbox => {
-        const price = parseFloat(checkbox.dataset.price);
-        subtotal += price;
+    // Calculate desserts total from dropdowns
+    dessertsSelects.forEach(select => {
+        const quantity = parseInt(select.value);
+        const price = parseFloat(select.dataset.price);
+        if (!isNaN(price) && !isNaN(quantity) && quantity > 0) {
+            subtotal += price * quantity;
+        }
     });
 
     // Calculate delivery fee and tax
@@ -481,12 +487,22 @@ function getCurrentOrderSummary() {
         addons.push(checkbox.value);
     });
 
-    // Get selected desserts
-    document.querySelectorAll('input[name="desserts"]:checked').forEach(checkbox => {
-        desserts.push({
-            item: checkbox.value,
-            price: parseFloat(checkbox.dataset.price)
-        });
+    // Get selected desserts from dropdowns
+    document.querySelectorAll('select[name="desserts"]').forEach(select => {
+        const quantity = parseInt(select.value);
+        if (quantity > 0) {
+            const flavorSelect = document.getElementById('flan-flavor');
+            const flavor = flavorSelect ? flavorSelect.value : '';
+            const itemName = flavor ? `${select.dataset.item} (${flavor})` : select.dataset.item;
+            
+            desserts.push({
+                item: itemName,
+                quantity: quantity,
+                price: parseFloat(select.dataset.price),
+                totalPrice: parseFloat(select.dataset.price) * quantity,
+                flavor: flavor
+            });
+        }
     });
 
     const orderSummary = {
@@ -763,7 +779,7 @@ function prefillOrderForm(orderSummary) {
         if (orderSummary.desserts.length > 0) {
             orderText += 'Desserts:\n';
             orderSummary.desserts.forEach(dessert => {
-                orderText += `- ${dessert.item} - $${dessert.price}\n`;
+                orderText += `- ${dessert.item} (Qty: ${dessert.quantity}) - $${dessert.totalPrice.toFixed(2)}\n`;
             });
             orderText += '\n';
         }
@@ -779,7 +795,7 @@ function prefillOrderForm(orderSummary) {
             subtotal += side.totalPrice;
         });
         orderSummary.desserts.forEach(dessert => {
-            subtotal += dessert.price;
+            subtotal += dessert.totalPrice;
         });
         
         // Check if delivery is selected
@@ -1032,7 +1048,7 @@ function populateModalOrderSummary(orderSummary) {
     if (orderSummary.desserts.length > 0) {
         summaryHTML += `<div class="order-item"><strong>Desserts:</strong></div>`;
         orderSummary.desserts.forEach(dessert => {
-            summaryHTML += `<div class="order-subitem">• ${dessert.item} - $${dessert.price}</div>`;
+            summaryHTML += `<div class="order-subitem">• ${dessert.item} (Qty: ${dessert.quantity}) - $${dessert.totalPrice.toFixed(2)}</div>`;
         });
     }
     
@@ -2020,7 +2036,7 @@ function createFormSubmitEmailBody(orderData, isPaymentOrder = false) {
             orderSummary.packages.forEach(pkg => subtotal += pkg.price);
         }
         orderSummary.extraSides.forEach(side => subtotal += side.totalPrice);
-        orderSummary.desserts.forEach(dessert => subtotal += dessert.price);
+        orderSummary.desserts.forEach(dessert => subtotal += dessert.totalPrice);
     }
     
     emailBody += `Subtotal: $${subtotal.toFixed(2)}\n`;

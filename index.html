@@ -414,11 +414,6 @@
                                     <span class="checkmark"></span>
                                     Plates
                                 </label>
-                                <label class="side-option">
-                                    <input type="checkbox" name="addons" value="Soul Fire" data-price="0.00">
-                                    <span class="checkmark"></span>
-                                    Soul Fire 🌶️ (The perfect blend of fire and flavor: grilled onion, habanero, lime, and cilantro, with the soul of Cuban Soul)
-                                </label>
                             </div>
                         </div>
 
@@ -426,21 +421,36 @@
                         <div class="menu-category menu-section-disabled" id="dessertsSection">
                             <h3>Desserts</h3>
                             <div class="desserts-options vertical-list">
-                                <label class="side-option">
-                                    <input type="checkbox" name="desserts" value="Caramel Flan" data-price="40.00">
-                                    <span class="checkmark"></span>
-                                    Caramel Flan - $40.00
-                                </label>
-                                <label class="side-option">
-                                    <input type="checkbox" name="desserts" value="Coconut Flan" data-price="45.00">
-                                    <span class="checkmark"></span>
-                                    Coconut Flan - $45.00
-                                </label>
-                                <label class="side-option">
-                                    <input type="checkbox" name="desserts" value="Cheese Flan" data-price="45.00">
-                                    <span class="checkmark"></span>
-                                    Cheese Flan - $45.00
-                                </label>
+                                <div class="dessert-option-with-details">
+                                    <div class="dessert-info">
+                                        <span class="dessert-name">Flan</span>
+                                        <span class="dessert-price">$44.99</span>
+                                    </div>
+                                    
+                                    <div class="dessert-selections">
+                                        <div class="flavor-selection">
+                                            <label for="flan-flavor">Flavor:</label>
+                                            <select id="flan-flavor" name="flan-flavor">
+                                                <option value="">Select flavor</option>
+                                                <option value="Caramel">Caramel</option>
+                                                <option value="Cream cheese">Cream cheese</option>
+                                                <option value="Coconut">Coconut</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="quantity-selection">
+                                            <label for="flan-quantity">Quantity:</label>
+                                            <select name="desserts" id="flan-quantity" data-price="44.99" data-item="Flan">
+                                                <option value="0">0</option>
+                                                <option value="1">1</option>
+                                                <option value="2">2</option>
+                                                <option value="3">3</option>
+                                                <option value="4">4</option>
+                                                <option value="5">5</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>

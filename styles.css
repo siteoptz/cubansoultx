@@ -1832,6 +1832,101 @@ html {
     box-shadow: 0 0 5px rgba(242, 218, 178, 0.5);
 }
 
+/* Desserts with Flavor and Quantity Selectors */
+.dessert-option-with-details {
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    border: 2px solid rgba(242, 218, 178, 0.3);
+    transition: all 0.3s ease;
+}
+
+.dessert-option-with-details:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: #F2DAB2;
+}
+
+.dessert-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.dessert-name {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: #243746;
+}
+
+.dessert-price {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #243746;
+}
+
+.dessert-selections {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+.flavor-selection,
+.quantity-selection {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.flavor-selection label,
+.quantity-selection label {
+    font-size: 0.95rem;
+    color: #243746;
+    font-weight: 500;
+}
+
+.flavor-selection select,
+.quantity-selection select {
+    padding: 8px 12px;
+    border: 2px solid #243746;
+    border-radius: 5px;
+    background: white;
+    color: #243746;
+    font-weight: 500;
+    font-size: 1rem;
+    min-width: 120px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.flavor-selection select:hover,
+.flavor-selection select:focus,
+.quantity-selection select:hover,
+.quantity-selection select:focus {
+    border-color: #F2DAB2;
+    outline: none;
+    box-shadow: 0 0 5px rgba(242, 218, 178, 0.5);
+}
+
+/* Responsive design for desserts */
+@media (max-width: 768px) {
+    .dessert-selections {
+        flex-direction: column;
+        gap: 15px;
+        align-items: stretch;
+    }
+    
+    .flavor-selection,
+    .quantity-selection {
+        justify-content: space-between;
+    }
+    
+    .flavor-selection select,
+    .quantity-selection select {
+        min-width: 100px;
+    }
+}
+
 /* Responsive design for extra sides */
 @media (max-width: 768px) {
     .side-option-with-quantity {
