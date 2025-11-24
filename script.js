@@ -65,9 +65,9 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             
             // Validate package selection first
-            const selectedPackage = document.querySelector('input[name="package"]:checked');
-            if (!selectedPackage) {
-                alert('Please select a package before proceeding to checkout.');
+            const selectedPackages = document.querySelectorAll('input[name="package"]:checked');
+            if (selectedPackages.length === 0) {
+                alert('Please select at least one package before proceeding to checkout.');
                 // Scroll to package selection
                 document.querySelector('.package-selection').scrollIntoView({
                     behavior: 'smooth',
@@ -220,9 +220,9 @@ document.addEventListener('DOMContentLoaded', function() {
     if (checkoutBtn) {
         checkoutBtn.addEventListener('click', function() {
             // Validate package selection first
-            const selectedPackage = document.querySelector('input[name="package"]:checked');
-            if (!selectedPackage) {
-                alert('Please select a package before proceeding to checkout.');
+            const selectedPackages = document.querySelectorAll('input[name="package"]:checked');
+            if (selectedPackages.length === 0) {
+                alert('Please select at least one package before proceeding to checkout.');
                 // Scroll to package selection
                 document.querySelector('.package-selection').scrollIntoView({
                     behavior: 'smooth',
@@ -252,7 +252,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Initialize Menu Order System
 function initializeMenuOrderSystem() {
-    const packageRadios = document.querySelectorAll('input[name="package"]');
+    const packageCheckboxes = document.querySelectorAll('input[name="package"]');
     const includedSidesCheckboxes = document.querySelectorAll('input[name="includedSides"]');
     const extraSidesCheckboxes = document.querySelectorAll('input[name="extraSides"]');
     const addonsCheckboxes = document.querySelectorAll('input[name="addons"]');
@@ -261,8 +261,8 @@ function initializeMenuOrderSystem() {
     const totalAmount = document.getElementById('totalAmount');
 
     // Handle package selection
-    packageRadios.forEach(radio => {
-        radio.addEventListener('change', function() {
+    packageCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
             // Enable other menu sections when package is selected
             enableMenuSections();
             updateOrderTotal();
@@ -334,7 +334,7 @@ function enableMenuSections() {
 
 // Update order total
 function updateOrderTotal() {
-    const selectedPackage = document.querySelector('input[name="package"]:checked');
+    const selectedPackages = document.querySelectorAll('input[name="package"]:checked');
     const extraSidesCheckboxes = document.querySelectorAll('input[name="extraSides"]:checked');
     const dessertsCheckboxes = document.querySelectorAll('input[name="desserts"]:checked');
     const totalAmountElement = document.getElementById('totalAmount');
@@ -342,10 +342,10 @@ function updateOrderTotal() {
     
     let subtotal = 0;
 
-    // Add package price if selected
-    if (selectedPackage) {
+    // Add package prices if selected
+    selectedPackages.forEach(selectedPackage => {
         subtotal += parseFloat(selectedPackage.dataset.price);
-    }
+    });
 
     // Calculate extra sides total
     extraSidesCheckboxes.forEach(checkbox => {
@@ -413,15 +413,15 @@ function updateOrderDetailsField() {
 // Get current order summary
 function getCurrentOrderSummary() {
     console.log('Getting current order summary...');
-    const selectedPackage = document.querySelector('input[name="package"]:checked');
+    const selectedPackages = document.querySelectorAll('input[name="package"]:checked');
     const includedSides = [];
     const extraSides = [];
     const addons = [];
     const desserts = [];
 
-    // Get selected package
-    let packageInfo = null;
-    if (selectedPackage) {
+    // Get selected packages (can be multiple now)
+    let packagesInfo = [];
+    selectedPackages.forEach(selectedPackage => {
         let packageName = selectedPackage.value;
         let packageDisplayName = packageName;
         
@@ -432,26 +432,28 @@ function getCurrentOrderSummary() {
             packageDisplayName = `The Soul Package - Chicken Asado (${packageName.replace('soul-', '').replace('-', ' ')})`;
         }
         
-        packageInfo = {
+        packagesInfo.push({
             type: packageDisplayName,
             originalValue: packageName,
             price: parseFloat(selectedPackage.dataset.price)
-        };
-    }
+        });
+    });
 
     // Get selected included sides
     document.querySelectorAll('input[name="includedSides"]:checked').forEach(checkbox => {
         includedSides.push(checkbox.value);
     });
 
-    // Get dressing selection if package is selected
-    let dressingSelection = '';
-    if (selectedPackage) {
-        const packageType = selectedPackage.value.includes('cuban-') ? 'cuban' : 'soul';
-        const dressingRadio = document.querySelector(`input[name="${packageType}-dressing"]:checked`);
-        if (dressingRadio) {
-            dressingSelection = dressingRadio.value;
-        }
+    // Get dressing selections for each package type
+    let dressingSelections = {};
+    const cubanDressing = document.querySelector('input[name="cuban-dressing"]:checked');
+    const soulDressing = document.querySelector('input[name="soul-dressing"]:checked');
+    
+    if (cubanDressing) {
+        dressingSelections.cuban = cubanDressing.value;
+    }
+    if (soulDressing) {
+        dressingSelections.soul = soulDressing.value;
     }
 
     // Get selected extra sides
@@ -476,12 +478,12 @@ function getCurrentOrderSummary() {
     });
 
     const orderSummary = {
-        package: packageInfo,
+        packages: packagesInfo,
         includedSides,
         extraSides,
         addons,
         desserts,
-        dressingSelection,
+        dressingSelections,
         total: parseFloat(document.getElementById('totalAmount').textContent)
     };
     
@@ -705,12 +707,17 @@ function prefillOrderForm(orderSummary) {
         let orderText = '';
         
         // Add package information
-        if (orderSummary.package) {
-            orderText += `Package: ${orderSummary.package.type} - $${orderSummary.package.price}\n`;
-            if (orderSummary.dressingSelection) {
-                orderText += `Salad Dressing: ${orderSummary.dressingSelection}\n`;
-            }
-            orderText += '\n';
+        if (orderSummary.packages && orderSummary.packages.length > 0) {
+            orderSummary.packages.forEach(packageInfo => {
+                orderText += `Package: ${packageInfo.type} - $${packageInfo.price}\n`;
+                
+                // Add relevant dressing selection
+                const packageType = packageInfo.originalValue.includes('cuban-') ? 'cuban' : 'soul';
+                if (orderSummary.dressingSelections && orderSummary.dressingSelections[packageType]) {
+                    orderText += `Salad Dressing: ${orderSummary.dressingSelections[packageType]}\n`;
+                }
+                orderText += '\n';
+            });
         }
         
         // Add included sides
