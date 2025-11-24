@@ -263,6 +263,7 @@ function initializeMenuOrderSystem() {
     // Handle package selection
     packageCheckboxes.forEach(checkbox => {
         checkbox.addEventListener('change', function() {
+            handlePackageSelection(this);
             // Enable other menu sections when package is selected
             enableMenuSections();
             updateOrderTotal();
@@ -322,6 +323,40 @@ function initializeMenuOrderSystem() {
     });
 }
 
+// Handle package type exclusion logic
+function handlePackageSelection(selectedCheckbox) {
+    const allPackageCheckboxes = document.querySelectorAll('input[name="package"]');
+    const selectedPackageType = selectedCheckbox.value.includes('cuban-') ? 'cuban' : 'soul';
+    const oppositePackageType = selectedPackageType === 'cuban' ? 'soul' : 'cuban';
+    
+    if (selectedCheckbox.checked) {
+        // Disable opposite package type
+        allPackageCheckboxes.forEach(checkbox => {
+            if (checkbox.value.includes(oppositePackageType + '-')) {
+                checkbox.disabled = true;
+                checkbox.parentElement.style.opacity = '0.5';
+                checkbox.parentElement.style.pointerEvents = 'none';
+            }
+        });
+    } else {
+        // Check if any packages of this type are still selected
+        const sameTypeSelected = Array.from(allPackageCheckboxes).some(checkbox => 
+            checkbox.checked && checkbox.value.includes(selectedPackageType + '-')
+        );
+        
+        // If no packages of this type are selected, re-enable opposite type
+        if (!sameTypeSelected) {
+            allPackageCheckboxes.forEach(checkbox => {
+                if (checkbox.value.includes(oppositePackageType + '-')) {
+                    checkbox.disabled = false;
+                    checkbox.parentElement.style.opacity = '1';
+                    checkbox.parentElement.style.pointerEvents = 'auto';
+                }
+            });
+        }
+    }
+}
+
 // Enable menu sections after package selection
 function enableMenuSections() {
     const menuSections = [
@@ -372,28 +407,39 @@ function updateOrderTotal() {
         }
     });
 
-    // Calculate delivery fee and tax
+    // Calculate service fee, delivery fee and tax
+    let serviceFee = 0;
     let deliveryFee = 0;
     let tax = 0;
+
+    // Calculate service fee: 20% of subtotal or $85 minimum (whichever is higher)
+    const twentyPercent = subtotal * 0.20;
+    serviceFee = Math.max(twentyPercent, 85.00);
 
     // Add delivery fee if delivery is selected
     if (orderType && orderType.value === 'delivery') {
         deliveryFee = 15.00;
     }
 
-    // Calculate 8.25% tax on subtotal only
-    tax = subtotal * 0.0825;
+    // Calculate 8.25% tax on subtotal + service fee
+    const taxableAmount = subtotal + serviceFee;
+    tax = taxableAmount * 0.0825;
     
     // Calculate final total
-    let total = subtotal + deliveryFee + tax;
+    let total = subtotal + serviceFee + deliveryFee + tax;
 
     // Update the display elements
     const subtotalAmountElement = document.getElementById('subtotalAmount');
+    const serviceFeeAmountElement = document.getElementById('serviceFeeAmount');
     const taxAmountElement = document.getElementById('taxAmount');
     const deliveryFeeLineElement = document.getElementById('deliveryFeeLine');
     
     if (subtotalAmountElement) {
         subtotalAmountElement.textContent = subtotal.toFixed(2);
+    }
+    
+    if (serviceFeeAmountElement) {
+        serviceFeeAmountElement.textContent = serviceFee.toFixed(2);
     }
     
     if (taxAmountElement) {

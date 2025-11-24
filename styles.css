@@ -923,11 +923,12 @@ html {
 }
 
 .order-total-sidebar {
-    position: sticky;
+    position: fixed;
     top: 20px;
+    right: 20px;
     z-index: 1000;
     height: fit-content;
-    align-self: flex-start;
+    width: 300px;
 }
 
 .order-total-card {
@@ -1112,17 +1113,26 @@ html {
     }
     
     .order-total-sidebar {
-        position: relative;
-        top: 0;
-        order: -1;
-        align-self: center;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        top: auto;
+        width: 100%;
+        z-index: 1001;
+        background: rgba(36, 55, 70, 0.95);
+        backdrop-filter: blur(10px);
+        padding: 10px;
+        order: 0;
     }
     
     .order-total-card {
         width: 100%;
         max-width: 400px;
-        padding: 20px;
+        padding: 15px;
         margin: 0 auto;
+        border-radius: 10px;
+        box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.3);
     }
     
     .total-amount {
