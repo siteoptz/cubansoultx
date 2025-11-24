@@ -1114,16 +1114,17 @@ html {
     }
     
     .menu-main-content {
-        margin-right: 0; /* Remove margin on mobile since order total is at bottom */
-        padding-bottom: 80px; /* Reduced padding for smaller mobile order total */
+        margin-right: 0; /* Remove margin on mobile since order total is at top */
+        padding-top: 100px; /* Add padding for mobile order total at top */
+        padding-bottom: 20px; /* Standard bottom padding */
     }
     
     .order-total-sidebar {
         position: fixed;
-        bottom: 20px;
+        top: 20px;
         right: 20px;
         left: 20px;
-        top: auto;
+        bottom: auto;
         width: auto;
         z-index: 1001;
         background: transparent;
