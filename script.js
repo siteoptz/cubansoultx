@@ -758,8 +758,10 @@ function prefillOrderForm(orderSummary) {
         
         // Calculate breakdown for order details
         let subtotal = 0;
-        if (orderSummary.package) {
-            subtotal += orderSummary.package.price;
+        if (orderSummary.packages) {
+            orderSummary.packages.forEach(pkg => {
+                subtotal += pkg.price;
+            });
         }
         orderSummary.extraSides.forEach(side => {
             subtotal += side.price;
@@ -938,9 +940,9 @@ function openPaymentModal() {
     console.log('Modal element:', modal);
     const orderSummary = getCurrentOrderSummary();
     
-    // Check if a package (main entree) is selected
-    if (!orderSummary.package) {
-        showPaymentError('Please select a package (main entree) before proceeding to payment');
+    // Check if packages are selected
+    if (!orderSummary.packages || orderSummary.packages.length === 0) {
+        showPaymentError('Please select at least one package before proceeding to payment');
         return;
     }
     
@@ -978,11 +980,16 @@ function populateModalOrderSummary(orderSummary) {
     let summaryHTML = '';
     
     // Add package information
-    if (orderSummary.package) {
-        summaryHTML += `<div class="order-item"><strong>Package:</strong> ${orderSummary.package.type} - $${orderSummary.package.price}</div>`;
-        if (orderSummary.dressingSelection) {
-            summaryHTML += `<div class="order-subitem">Salad Dressing: ${orderSummary.dressingSelection}</div>`;
-        }
+    if (orderSummary.packages && orderSummary.packages.length > 0) {
+        orderSummary.packages.forEach(packageInfo => {
+            summaryHTML += `<div class="order-item"><strong>Package:</strong> ${packageInfo.type} - $${packageInfo.price}</div>`;
+            
+            // Add relevant dressing selection
+            const packageType = packageInfo.originalValue.includes('cuban-') ? 'cuban' : 'soul';
+            if (orderSummary.dressingSelections && orderSummary.dressingSelections[packageType]) {
+                summaryHTML += `<div class="order-subitem">Salad Dressing: ${orderSummary.dressingSelections[packageType]}</div>`;
+            }
+        });
     }
     
     // Add included sides
@@ -1179,10 +1186,10 @@ function processModalPayment() {
     const totalAmount = orderSummary.total;
     console.log('Total amount:', totalAmount);
 
-    // Check if a package (main entree) is selected
-    if (!orderSummary.package) {
-        console.log('ERROR: No package selected');
-        showPaymentError('Please select a package (main entree) before processing payment');
+    // Check if packages are selected
+    if (!orderSummary.packages || orderSummary.packages.length === 0) {
+        console.log('ERROR: No packages selected');
+        showPaymentError('Please select at least one package before processing payment');
         return;
     }
     
@@ -1935,13 +1942,18 @@ function createFormSubmitEmailBody(orderData, isPaymentOrder = false) {
     // Order Details
     emailBody += `ORDER DETAILS:\n`;
     
-    // Package
-    if (orderSummary.package) {
-        emailBody += `Package: ${orderSummary.package.type} - $${orderSummary.package.price.toFixed(2)}\n`;
-        if (orderSummary.dressingSelection) {
-            emailBody += `Salad Dressing: ${orderSummary.dressingSelection}\n`;
-        }
-        emailBody += '\n';
+    // Packages
+    if (orderSummary.packages && orderSummary.packages.length > 0) {
+        orderSummary.packages.forEach(packageInfo => {
+            emailBody += `Package: ${packageInfo.type} - $${packageInfo.price.toFixed(2)}\n`;
+            
+            // Add relevant dressing selection
+            const packageType = packageInfo.originalValue.includes('cuban-') ? 'cuban' : 'soul';
+            if (orderSummary.dressingSelections && orderSummary.dressingSelections[packageType]) {
+                emailBody += `Salad Dressing: ${orderSummary.dressingSelections[packageType]}\n`;
+            }
+            emailBody += '\n';
+        });
     }
     
     // Included Sides
@@ -1992,7 +2004,9 @@ function createFormSubmitEmailBody(orderData, isPaymentOrder = false) {
     
     // If subtotal not available, calculate from individual items
     if (!subtotal) {
-        subtotal = (orderSummary.package?.price || 0);
+        if (orderSummary.packages) {
+            orderSummary.packages.forEach(pkg => subtotal += pkg.price);
+        }
         orderSummary.extraSides.forEach(side => subtotal += side.price);
         orderSummary.desserts.forEach(dessert => subtotal += dessert.price);
     }
