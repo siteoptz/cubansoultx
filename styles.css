@@ -1661,10 +1661,18 @@ html {
     margin-left: 15px;
     font-size: 0.9rem;
     color: #666;
+}
+
+.dressing-label {
+    margin-bottom: 5px;
+    font-weight: 500;
+    color: #243746;
+}
+
+.dressing-options {
     display: flex;
-    flex-wrap: wrap;
+    gap: 15px;
     align-items: center;
-    gap: 10px;
 }
 
 .dressing-option {
