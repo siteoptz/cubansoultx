@@ -422,8 +422,19 @@ function getCurrentOrderSummary() {
     // Get selected package
     let packageInfo = null;
     if (selectedPackage) {
+        let packageName = selectedPackage.value;
+        let packageDisplayName = packageName;
+        
+        // Convert package values to display names
+        if (packageName.includes('cuban-')) {
+            packageDisplayName = `The Cuban Package - Lechon Asado (${packageName.replace('cuban-', '').replace('-', ' ')})`;
+        } else if (packageName.includes('soul-')) {
+            packageDisplayName = `The Soul Package - Chicken Asado (${packageName.replace('soul-', '').replace('-', ' ')})`;
+        }
+        
         packageInfo = {
-            type: selectedPackage.value,
+            type: packageDisplayName,
+            originalValue: packageName,
             price: parseFloat(selectedPackage.dataset.price)
         };
     }
@@ -432,6 +443,16 @@ function getCurrentOrderSummary() {
     document.querySelectorAll('input[name="includedSides"]:checked').forEach(checkbox => {
         includedSides.push(checkbox.value);
     });
+
+    // Get dressing selection if package is selected
+    let dressingSelection = '';
+    if (selectedPackage) {
+        const packageType = selectedPackage.value.includes('cuban-') ? 'cuban' : 'soul';
+        const dressingRadio = document.querySelector(`input[name="${packageType}-dressing"]:checked`);
+        if (dressingRadio) {
+            dressingSelection = dressingRadio.value;
+        }
+    }
 
     // Get selected extra sides
     document.querySelectorAll('input[name="extraSides"]:checked').forEach(checkbox => {
@@ -460,6 +481,7 @@ function getCurrentOrderSummary() {
         extraSides,
         addons,
         desserts,
+        dressingSelection,
         total: parseFloat(document.getElementById('totalAmount').textContent)
     };
     
@@ -684,7 +706,11 @@ function prefillOrderForm(orderSummary) {
         
         // Add package information
         if (orderSummary.package) {
-            orderText += `Package: ${orderSummary.package.type.replace('-', ' ')} - $${orderSummary.package.price}\n\n`;
+            orderText += `Package: ${orderSummary.package.type} - $${orderSummary.package.price}\n`;
+            if (orderSummary.dressingSelection) {
+                orderText += `Salad Dressing: ${orderSummary.dressingSelection}\n`;
+            }
+            orderText += '\n';
         }
         
         // Add included sides
@@ -946,7 +972,10 @@ function populateModalOrderSummary(orderSummary) {
     
     // Add package information
     if (orderSummary.package) {
-        summaryHTML += `<div class="order-item"><strong>Package:</strong> ${orderSummary.package.type.replace('-', ' ')} - $${orderSummary.package.price}</div>`;
+        summaryHTML += `<div class="order-item"><strong>Package:</strong> ${orderSummary.package.type} - $${orderSummary.package.price}</div>`;
+        if (orderSummary.dressingSelection) {
+            summaryHTML += `<div class="order-subitem">Salad Dressing: ${orderSummary.dressingSelection}</div>`;
+        }
     }
     
     // Add included sides
@@ -1901,7 +1930,11 @@ function createFormSubmitEmailBody(orderData, isPaymentOrder = false) {
     
     // Package
     if (orderSummary.package) {
-        emailBody += `Package: ${orderSummary.package.type.replace('-', ' ')} - $${orderSummary.package.price.toFixed(2)}\n\n`;
+        emailBody += `Package: ${orderSummary.package.type} - $${orderSummary.package.price.toFixed(2)}\n`;
+        if (orderSummary.dressingSelection) {
+            emailBody += `Salad Dressing: ${orderSummary.dressingSelection}\n`;
+        }
+        emailBody += '\n';
     }
     
     // Included Sides
