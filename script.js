@@ -76,6 +76,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
+            // Validate dressing selection
+            const dressingValidation = validateDressingSelection();
+            if (!dressingValidation.valid) {
+                alert(dressingValidation.message);
+                // Scroll to package selection
+                document.querySelector(dressingValidation.scrollTarget).scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+                return;
+            }
+            
             // Open payment modal if validation passes
             openPaymentModal();
         });
@@ -240,6 +252,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
+            // Validate dressing selection
+            const dressingValidation = validateDressingSelection();
+            if (!dressingValidation.valid) {
+                alert(dressingValidation.message);
+                // Scroll to package selection
+                document.querySelector(dressingValidation.scrollTarget).scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+                return;
+            }
+            
             const orderSummary = getCurrentOrderSummary();
             if (orderSummary.total > 0) {
                 // Scroll to order form
@@ -263,6 +287,43 @@ document.addEventListener('DOMContentLoaded', function() {
         toggleMobileOrderTotal();
     });
 });
+
+// Validate dressing selection for selected packages
+function validateDressingSelection() {
+    const selectedPackages = document.querySelectorAll('input[name="package"]:checked');
+    if (selectedPackages.length === 0) {
+        return true; // No packages selected, so no dressing validation needed
+    }
+    
+    let hasCubanPackage = false;
+    let hasSoulPackage = false;
+    
+    selectedPackages.forEach(pkg => {
+        if (pkg.value.includes('cuban-')) {
+            hasCubanPackage = true;
+        } else if (pkg.value.includes('soul-')) {
+            hasSoulPackage = true;
+        }
+    });
+    
+    // Check Cuban dressing selection
+    if (hasCubanPackage) {
+        const cubanDressing = document.querySelector('input[name="cuban-dressing"]:checked');
+        if (!cubanDressing) {
+            return { valid: false, message: 'Please select a dressing for your Cuban package', scrollTarget: '.package-selection' };
+        }
+    }
+    
+    // Check Soul dressing selection
+    if (hasSoulPackage) {
+        const soulDressing = document.querySelector('input[name="soul-dressing"]:checked');
+        if (!soulDressing) {
+            return { valid: false, message: 'Please select a dressing for your Soul package', scrollTarget: '.package-selection' };
+        }
+    }
+    
+    return { valid: true };
+}
 
 // Initialize Menu Order System
 function initializeMenuOrderSystem() {
@@ -1103,9 +1164,16 @@ function openPaymentModal() {
         return;
     }
     
-    // Check if exactly 3 included sides are selected
+    // Check if exactly 2 included sides are selected
     if (orderSummary.includedSides.length !== 2) {
         showPaymentError('Please select exactly 2 included sides from the main entrees section');
+        return;
+    }
+    
+    // Check if dressing is selected for all packages
+    const dressingValidation = validateDressingSelection();
+    if (!dressingValidation.valid) {
+        showPaymentError(dressingValidation.message);
         return;
     }
     
@@ -1398,10 +1466,18 @@ function processModalPayment() {
         return;
     }
     
-    // Check if exactly 3 included sides are selected
-    if (orderSummary.includedSides.length !== 3) {
+    // Check if exactly 2 included sides are selected
+    if (orderSummary.includedSides.length !== 2) {
         console.log('ERROR: Included sides count:', orderSummary.includedSides.length);
-        showPaymentError('Please select exactly 3 included sides from the main entrees section');
+        showPaymentError('Please select exactly 2 included sides from the main entrees section');
+        return;
+    }
+    
+    // Check if dressing is selected for all packages
+    const dressingValidation = validateDressingSelection();
+    if (!dressingValidation.valid) {
+        console.log('ERROR: Dressing validation failed:', dressingValidation.message);
+        showPaymentError(dressingValidation.message);
         return;
     }
 
@@ -2371,6 +2447,10 @@ function resetOrderSystem() {
     if (serviceFeeCheckbox) {
         serviceFeeCheckbox.checked = false;
     }
+    
+    // Reset dressing selections
+    document.querySelectorAll('input[name="cuban-dressing"]').forEach(radio => radio.checked = false);
+    document.querySelectorAll('input[name="soul-dressing"]').forEach(radio => radio.checked = false);
     
     // Reset counters and totals
     const sidesCounter = document.getElementById('sidesCounter');
