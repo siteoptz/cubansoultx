@@ -1181,8 +1181,56 @@ function populateModalOrderSummary(orderSummary) {
         });
     }
     
+    // Add order breakdown section
+    summaryHTML += `<div class="order-breakdown"><strong>--- ORDER BREAKDOWN ---</strong></div>`;
+    
+    // Calculate breakdown values
+    let subtotal = 0;
+    if (orderSummary.packages) {
+        orderSummary.packages.forEach(pkg => {
+            subtotal += pkg.price;
+        });
+    }
+    orderSummary.extraSides.forEach(side => {
+        subtotal += side.totalPrice;
+    });
+    orderSummary.desserts.forEach(dessert => {
+        subtotal += dessert.totalPrice;
+    });
+    
+    summaryHTML += `<div class="breakdown-item">Subtotal: $${subtotal.toFixed(2)}</div>`;
+    
+    // Add service fee if selected
+    let serviceFee = 0;
+    if (orderSummary.serviceFeeSelected) {
+        const twentyPercent = subtotal * 0.20;
+        serviceFee = Math.max(twentyPercent, 85.00);
+        summaryHTML += `<div class="breakdown-item">Service Fee: $${serviceFee.toFixed(2)}</div>`;
+    }
+    
+    // Check if delivery is selected
+    const orderType = document.getElementById('orderType');
+    const isDelivery = orderType && orderType.value === 'delivery';
+    let deliveryFee = 0;
+    if (isDelivery) {
+        deliveryFee = 15.00;
+        summaryHTML += `<div class="breakdown-item">Delivery Fee: $${deliveryFee.toFixed(2)}</div>`;
+    }
+    
+    // Calculate tax on subtotal + service fee
+    const taxableAmount = subtotal + serviceFee;
+    const tax = taxableAmount * 0.0825;
+    summaryHTML += `<div class="breakdown-item">Tax (8.25%): $${tax.toFixed(2)}</div>`;
+    
+    const calculatedTotal = subtotal + serviceFee + deliveryFee + tax;
+    summaryHTML += `<div class="breakdown-total"><strong>Total: $${calculatedTotal.toFixed(2)}</strong></div>`;
+    
+    if (isDelivery) {
+        summaryHTML += `<div class="delivery-note">*Delivery available up to 10 miles from The Woodlands</div>`;
+    }
+    
     summaryElement.innerHTML = summaryHTML;
-    totalElement.textContent = orderSummary.total.toFixed(2);
+    totalElement.textContent = calculatedTotal.toFixed(2);
 }
 
 // Populate modal with customer information
