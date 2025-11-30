@@ -329,6 +329,14 @@ function initializeMenuOrderSystem() {
             console.log('Add-on selected:', this.value);
         });
     });
+
+    // Handle service fee checkbox
+    const serviceFeeCheckbox = document.getElementById('serviceFeeCheckbox');
+    if (serviceFeeCheckbox) {
+        serviceFeeCheckbox.addEventListener('change', function() {
+            updateOrderTotal();
+        });
+    }
 }
 
 // Handle package type exclusion logic
@@ -392,7 +400,8 @@ function enableMenuSections() {
         'mainEntreesSection',
         'extraSidesSection', 
         'addonsSection',
-        'dessertsSection'
+        'dessertsSection',
+        'serviceFeeSection'
     ];
     
     menuSections.forEach(sectionId => {
@@ -441,9 +450,12 @@ function updateOrderTotal() {
     let deliveryFee = 0;
     let tax = 0;
 
-    // Calculate service fee: 20% of subtotal or $85 minimum (whichever is higher)
-    const twentyPercent = subtotal * 0.20;
-    serviceFee = Math.max(twentyPercent, 85.00);
+    // Calculate service fee only if checkbox is checked: 20% of subtotal or $85 minimum (whichever is higher)
+    const serviceFeeCheckbox = document.getElementById('serviceFeeCheckbox');
+    if (serviceFeeCheckbox && serviceFeeCheckbox.checked) {
+        const twentyPercent = subtotal * 0.20;
+        serviceFee = Math.max(twentyPercent, 85.00);
+    }
 
     // Add delivery fee if delivery is selected
     if (orderType && orderType.value === 'delivery') {
@@ -460,6 +472,7 @@ function updateOrderTotal() {
     // Update the display elements
     const subtotalAmountElement = document.getElementById('subtotalAmount');
     const serviceFeeAmountElement = document.getElementById('serviceFeeAmount');
+    const serviceFeeLineElement = document.getElementById('serviceFeeAmount')?.closest('.breakdown-line');
     const taxAmountElement = document.getElementById('taxAmount');
     const deliveryFeeLineElement = document.getElementById('deliveryFeeLine');
     
@@ -469,6 +482,15 @@ function updateOrderTotal() {
     
     if (serviceFeeAmountElement) {
         serviceFeeAmountElement.textContent = serviceFee.toFixed(2);
+    }
+    
+    // Show/hide service fee line based on whether it's selected
+    if (serviceFeeLineElement) {
+        if (serviceFee > 0) {
+            serviceFeeLineElement.style.display = 'flex';
+        } else {
+            serviceFeeLineElement.style.display = 'none';
+        }
     }
     
     if (taxAmountElement) {
@@ -580,6 +602,10 @@ function getCurrentOrderSummary() {
         }
     });
 
+    // Get service fee selection
+    const serviceFeeCheckbox = document.getElementById('serviceFeeCheckbox');
+    const serviceFeeSelected = serviceFeeCheckbox ? serviceFeeCheckbox.checked : false;
+
     const orderSummary = {
         packages: packagesInfo,
         includedSides,
@@ -587,6 +613,7 @@ function getCurrentOrderSummary() {
         addons,
         desserts,
         dressingSelections,
+        serviceFeeSelected: serviceFeeSelected,
         total: parseFloat(document.getElementById('totalAmount').textContent)
     };
     
@@ -877,9 +904,13 @@ function prefillOrderForm(orderSummary) {
         const orderType = document.getElementById('orderType');
         const isDelivery = orderType && orderType.value === 'delivery';
         
-        // Calculate service fee (20% or $85 minimum, whichever is higher) 
-        const twentyPercent = subtotal * 0.20;
-        const serviceFee = Math.max(twentyPercent, 85.00);
+        // Calculate service fee only if checkbox is checked (20% or $85 minimum, whichever is higher) 
+        let serviceFee = 0;
+        const serviceFeeCheckbox = document.getElementById('serviceFeeCheckbox');
+        if (serviceFeeCheckbox && serviceFeeCheckbox.checked) {
+            const twentyPercent = subtotal * 0.20;
+            serviceFee = Math.max(twentyPercent, 85.00);
+        }
         
         // Calculate tax on subtotal + service fee
         const taxableAmount = subtotal + serviceFee;
@@ -895,7 +926,10 @@ function prefillOrderForm(orderSummary) {
         // Add order summary with breakdown (match shopping cart exactly)
         orderText += '--- ORDER BREAKDOWN ---\n';
         orderText += `Subtotal: $${subtotal.toFixed(2)}\n`;
-        orderText += `Service Fee: $${serviceFee.toFixed(2)}\n`;
+        
+        if (serviceFee > 0) {
+            orderText += `Service Fee: $${serviceFee.toFixed(2)}\n`;
+        }
         
         if (isDelivery) {
             orderText += `Delivery Fee: $${deliveryFee.toFixed(2)}\n`;
@@ -2130,12 +2164,20 @@ function createFormSubmitEmailBody(orderData, isPaymentOrder = false) {
     
     emailBody += `Subtotal: $${subtotal.toFixed(2)}\n`;
     
+    // Calculate service fee if it should be included
+    let serviceFee = 0;
+    if (orderSummary.serviceFeeSelected) {
+        const twentyPercent = subtotal * 0.20;
+        serviceFee = Math.max(twentyPercent, 85.00);
+        emailBody += `Service Fee: $${serviceFee.toFixed(2)}\n`;
+    }
+    
     if (isDelivery) {
         emailBody += `Delivery Fee: $15.00\n`;
         emailBody += `*Delivery available up to 10 miles from The Woodlands\n`;
     }
     
-    const taxableAmount = isDelivery ? subtotal + 15 : subtotal;
+    const taxableAmount = subtotal + serviceFee + (isDelivery ? 15 : 0);
     const tax = taxableAmount * 0.0825;
     emailBody += `Tax (8.25%): $${tax.toFixed(2)}\n`;
     emailBody += `TOTAL: $${orderSummary.total.toFixed(2)}\n\n`;
