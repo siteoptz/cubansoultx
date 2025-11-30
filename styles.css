@@ -2196,3 +2196,67 @@ html {
         text-align: center;
     }
 }
+
+/* Service Fee Section Styles */
+.service-fee-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    margin-top: 15px;
+}
+
+.service-fee-explanation,
+.service-fee-pricing {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    padding: 20px;
+    border: 2px solid rgba(242, 218, 178, 0.3);
+}
+
+.service-fee-description h4,
+.service-fee-details h4 {
+    color: var(--primary-color);
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.service-fee-description p,
+.service-fee-details p {
+    color: var(--text-light);
+    line-height: 1.5;
+    margin-bottom: 15px;
+}
+
+.service-fee-option {
+    margin-top: 15px;
+}
+
+.service-fee-checkbox {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-weight: 500;
+    color: var(--primary-color);
+}
+
+.service-fee-checkbox input[type="checkbox"] {
+    margin-right: 10px;
+}
+
+.service-fee-text {
+    font-size: 0.95rem;
+}
+
+/* Responsive Service Fee */
+@media (max-width: 768px) {
+    .service-fee-content {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .service-fee-explanation,
+    .service-fee-pricing {
+        padding: 15px;
+    }
+}
