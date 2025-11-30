@@ -218,6 +218,12 @@ document.addEventListener('DOMContentLoaded', function() {
         updateOrderDetailsField();
     }, 500);
     
+    // Initialize service fee display (hide by default)
+    const serviceFeeDisplay = document.getElementById('serviceFeeDisplay');
+    if (serviceFeeDisplay) {
+        serviceFeeDisplay.style.display = 'none';
+    }
+    
     // Checkout button functionality
     const checkoutBtn = document.getElementById('checkoutBtn');
     if (checkoutBtn) {
@@ -472,7 +478,7 @@ function updateOrderTotal() {
     // Update the display elements
     const subtotalAmountElement = document.getElementById('subtotalAmount');
     const serviceFeeAmountElement = document.getElementById('serviceFeeAmount');
-    const serviceFeeLineElement = document.getElementById('serviceFeeAmount')?.closest('.breakdown-line');
+    const serviceFeeLineElement = document.getElementById('serviceFeeDisplay');
     const taxAmountElement = document.getElementById('taxAmount');
     const deliveryFeeLineElement = document.getElementById('deliveryFeeLine');
     
@@ -2312,12 +2318,26 @@ function resetOrderSystem() {
     document.querySelectorAll('input[name="addons"]').forEach(checkbox => checkbox.checked = false);
     document.querySelectorAll('input[name="desserts"]').forEach(checkbox => checkbox.checked = false);
     
+    // Reset service fee checkbox
+    const serviceFeeCheckbox = document.getElementById('serviceFeeCheckbox');
+    if (serviceFeeCheckbox) {
+        serviceFeeCheckbox.checked = false;
+    }
+    
     // Reset counters and totals
     const sidesCounter = document.getElementById('sidesCounter');
     const totalAmount = document.getElementById('totalAmount');
+    const subtotalAmount = document.getElementById('subtotalAmount');
+    const serviceFeeAmount = document.getElementById('serviceFeeAmount');
+    const serviceFeeDisplay = document.getElementById('serviceFeeDisplay');
+    const taxAmount = document.getElementById('taxAmount');
     
     if (sidesCounter) sidesCounter.textContent = '0';
     if (totalAmount) totalAmount.textContent = '0.00';
+    if (subtotalAmount) subtotalAmount.textContent = '0.00';
+    if (serviceFeeAmount) serviceFeeAmount.textContent = '0.00';
+    if (serviceFeeDisplay) serviceFeeDisplay.style.display = 'none';
+    if (taxAmount) taxAmount.textContent = '0.00';
     
     // Reset address visibility
     const addressGroup = document.getElementById('addressGroup');
