@@ -545,7 +545,7 @@ function getCurrentOrderSummary() {
         if (packageName.includes('cuban-')) {
             packageDisplayName = `The Cuban Package - Lechon Asado (${packageName.replace('cuban-', '').replace('-', ' ')})`;
         } else if (packageName.includes('soul-')) {
-            packageDisplayName = `The Soul Package - Chicken Asado (${packageName.replace('soul-', '').replace('-', ' ')})`;
+            packageDisplayName = `The Soul Package - Pollo Asado (${packageName.replace('soul-', '').replace('-', ' ')})`;
         }
         
         packagesInfo.push({
