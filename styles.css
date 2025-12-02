@@ -429,6 +429,22 @@ h1 {
     margin: 0 auto;
 }
 
+/* Order section following menu layout structure */
+.order-main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.order-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+}
+
 .order-info {
     background: var(--cream-color);
     padding: 40px;
@@ -654,6 +670,23 @@ h1 {
     transform: scale(1.1);
 }
 
+/* Social Icon Only Styles */
+.social-icon {
+    display: inline-block;
+    text-decoration: none;
+    margin: 10px 15px;
+    transition: all 0.3s ease;
+}
+
+.social-icon:hover {
+    transform: translateY(-3px) scale(1.1);
+    filter: drop-shadow(0 5px 10px rgba(0, 0, 0, 0.3));
+}
+
+.social-icon svg {
+    transition: all 0.3s ease;
+}
+
 .truck-image {
     margin-top: 30px;
     text-align: center;
@@ -761,6 +794,11 @@ h1 {
     .contact-content {
         grid-template-columns: 1fr;
         gap: 30px;
+    }
+    
+    .order-row {
+        grid-template-columns: 1fr;
+        gap: 20px;
     }
     
     .footer-content {
