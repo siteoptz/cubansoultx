@@ -2260,3 +2260,26 @@ html {
         padding: 15px;
     }
 }
+
+/* WhatsApp Phone Link Styles */
+.phone {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    color: white;
+    transition: opacity 0.3s ease;
+}
+
+.phone:hover {
+    opacity: 0.8;
+}
+
+.phone svg {
+    flex-shrink: 0;
+    transition: transform 0.3s ease;
+}
+
+.phone:hover svg {
+    transform: scale(1.1);
+}

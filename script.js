@@ -750,7 +750,7 @@ function showPhoneMessage() {
     message.className = 'alert alert-info';
     message.innerHTML = `
         <strong>Please call us directly:</strong><br>
-        <a href="tel:8324105035" style="color: white; font-size: 18px;">(832) 410-5035</a>
+        <a href="https://wa.me/18325107664" target="_blank" style="color: white; font-size: 18px;">(832) 510-7664</a>
     `;
     message.style.cssText = `
         position: fixed;
@@ -1514,7 +1514,7 @@ function processModalPayment() {
                 paymentAmount: totalAmount,
                 name: document.getElementById('name').value || 'Demo Customer',
                 email: document.getElementById('email').value || 'demo@cubansoul.com',
-                phone: document.getElementById('phone').value || '(832) 410-5035',
+                phone: document.getElementById('phone').value || '(832) 510-7664',
                 orderType: document.getElementById('orderType').value || 'pickup',
                 orderDate: document.getElementById('orderDate').value || new Date().toISOString().split('T')[0],
                 orderTime: document.getElementById('orderTime').value || '12:00',
@@ -2045,7 +2045,7 @@ WHAT'S NEXT:
 
 QUESTIONS OR CHANGES:
 If you have any questions or need to make changes to your order, please contact us:
-📞 Phone: (832) 410-5035
+📞 Phone: (832) 510-7664
 📧 Email: cubanfoodinternationalllc@gmail.com
 
 Thank you for supporting Cuban Soul!
@@ -2056,7 +2056,7 @@ The Cuban Soul Team
 
 ---
 Cuban Soul Restaurant
-Phone: (832) 410-5035
+Phone: (832) 510-7664
 Email: cubanfoodinternationalllc@gmail.com`;
 
             // Try EmailJS as alternative email service
@@ -2160,7 +2160,7 @@ Email: cubanfoodinternationalllc@gmail.com`;
         console.log('📧 Business recipients: cubanfoodinternationalllc@gmail.com, antonio@siteoptz.com');
         console.log('✅ Customer thank you email sent via Web3Forms');
         console.log('📧 Customer recipient:', customerEmail);
-        console.log('📞 Contact info provided: (832) 410-5035');
+        console.log('📞 Contact info provided: (832) 510-7664');
         console.log('Web3Forms email delivery completed successfully!');
         
         if (isPaymentOrder) {
@@ -2190,7 +2190,7 @@ Email: cubanfoodinternationalllc@gmail.com`;
             
             // Show additional message about email
             setTimeout(() => {
-                alert('Your payment was processed successfully! Please call (832) 410-5035 to confirm your order details.');
+                alert('Your payment was processed successfully! Please call (832) 510-7664 to confirm your order details.');
             }, 3000);
         } else {
             showOrderSuccess();
@@ -2326,7 +2326,7 @@ function createFormSubmitEmailBody(orderData, isPaymentOrder = false) {
     
     // Footer
     emailBody += `=== CUBAN SOUL CONTACT ===\n`;
-    emailBody += `Phone: (832) 410-5035\n`;
+    emailBody += `Phone: (832) 510-7664\n`;
     emailBody += `Email: cubanfoodinternationalllc@gmail.com\n`;
     emailBody += `"Sabor Que Viene Del Alma"\n`;
     
