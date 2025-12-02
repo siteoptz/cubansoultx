@@ -448,15 +448,18 @@ function toggleMobileOrderTotal() {
     const anyPackageSelected = document.querySelectorAll('input[name="package"]:checked').length > 0;
     const orderTotalSidebar = document.querySelector('.order-total-sidebar');
     const menuMainContent = document.querySelector('.menu-main-content');
+    const orderMainContent = document.querySelector('.order-main-content');
     
     // Only apply on mobile (screen width <= 768px)
     if (window.innerWidth <= 768) {
         if (anyPackageSelected) {
             orderTotalSidebar?.classList.add('show-mobile');
             menuMainContent?.classList.add('has-order-total');
+            orderMainContent?.classList.add('has-order-total');
         } else {
             orderTotalSidebar?.classList.remove('show-mobile');
             menuMainContent?.classList.remove('has-order-total');
+            orderMainContent?.classList.remove('has-order-total');
         }
     }
 }
