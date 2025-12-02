@@ -619,11 +619,15 @@ h1 {
 }
 
 .social-btn {
-    padding: 10px 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
     border-radius: 25px;
     text-decoration: none;
     font-weight: 500;
     transition: all 0.3s ease;
+    margin: 5px;
 }
 
 .social-btn.facebook {
@@ -636,14 +640,18 @@ h1 {
     color: white;
 }
 
-.social-btn.twitter {
-    background: #1DA1F2;
-    color: white;
-}
-
 .social-btn:hover {
     transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.social-btn svg {
+    flex-shrink: 0;
+    transition: transform 0.3s ease;
+}
+
+.social-btn:hover svg {
+    transform: scale(1.1);
 }
 
 .truck-image {
