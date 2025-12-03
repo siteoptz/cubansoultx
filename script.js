@@ -640,8 +640,18 @@ function getCurrentOrderSummary() {
     document.querySelectorAll('select[name="extraSides"]').forEach(select => {
         const quantity = parseInt(select.value);
         if (quantity > 0) {
+            let itemName = select.dataset.item;
+            
+            // Check if this is the croquetas item and add the type selection
+            if (select.id === 'croquetas-quantity') {
+                const croquetasTypeRadio = document.querySelector('input[name="croquetas-type"]:checked');
+                if (croquetasTypeRadio) {
+                    itemName = itemName.replace('Cuban Croquetas Tray', `Cuban ${croquetasTypeRadio.value} Croquetas Tray`);
+                }
+            }
+            
             extraSides.push({
-                item: select.dataset.item,
+                item: itemName,
                 quantity: quantity,
                 price: parseFloat(select.dataset.price),
                 totalPrice: parseFloat(select.dataset.price) * quantity

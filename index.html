@@ -354,16 +354,25 @@
                                         <span class="side-name">Cuban Ham Croquetas Tray (12 count) serves 6 ppl.</span>
                                         <span class="side-price">$11.99</span>
                                     </div>
-                                    <div class="quantity-selector">
-                                        <label for="croquetas-quantity">Quantity:</label>
-                                        <select name="extraSides" id="croquetas-quantity" data-price="11.99" data-item="Cuban Ham Croquetas Tray (12 count) serves 6 ppl.">
-                                            <option value="0">0</option>
-                                            <option value="1">1</option>
-                                            <option value="2">2</option>
-                                            <option value="3">3</option>
-                                            <option value="4">4</option>
-                                            <option value="5">5</option>
-                                        </select>
+                                    <div class="croquetas-options">
+                                        <div class="croquetas-type">
+                                            <label>Type:</label>
+                                            <input type="radio" id="croquetas-ham" name="croquetas-type" value="Ham" checked>
+                                            <label for="croquetas-ham">Ham</label>
+                                            <input type="radio" id="croquetas-chicken" name="croquetas-type" value="Chicken">
+                                            <label for="croquetas-chicken">Chicken</label>
+                                        </div>
+                                        <div class="quantity-selector">
+                                            <label for="croquetas-quantity">Quantity:</label>
+                                            <select name="extraSides" id="croquetas-quantity" data-price="11.99" data-item="Cuban Croquetas Tray (12 count) serves 6 ppl.">
+                                                <option value="0">0</option>
+                                                <option value="1">1</option>
+                                                <option value="2">2</option>
+                                                <option value="3">3</option>
+                                                <option value="4">4</option>
+                                                <option value="5">5</option>
+                                            </select>
+                                        </div>
                                     </div>
                                 </div>
 

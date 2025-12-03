@@ -1940,6 +1940,39 @@ html {
     box-shadow: 0 0 5px rgba(242, 218, 178, 0.5);
 }
 
+/* Croquetas Type Selection */
+.croquetas-options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.croquetas-type {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.croquetas-type label:first-child {
+    font-size: 0.9rem;
+    color: #243746;
+    font-weight: 500;
+    margin-right: 5px;
+}
+
+.croquetas-type input[type="radio"] {
+    margin: 0 5px 0 0;
+}
+
+.croquetas-type label:not(:first-child) {
+    font-size: 0.9rem;
+    color: #243746;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+
 /* Desserts with Flavor and Quantity Selectors */
 .dessert-option-with-details {
     padding: 20px;
