@@ -2487,18 +2487,60 @@ function resetOrderSystem() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// Mobile Food Gallery Slider Functionality
+// Food Gallery Slider Functionality
+let currentSlideIndex = 0;
 let currentMobileSlideIndex = 0;
+const totalSlides = 4;
 const totalMobileSlides = 4;
-const mobileSliderWrapper = document.querySelector('.gallery-slider-wrapper');
+const sliderWrapper = document.querySelector('.gallery-slider-wrapper');
 const mobileDots = document.querySelectorAll('.mobile-dot');
+const dots = document.querySelectorAll('.dot');
 
 function isMobileDevice() {
     return window.innerWidth <= 768; // Mobile breakpoint
 }
 
+// Desktop slider functionality
+function showSlide(index) {
+    if (isMobileDevice() || !sliderWrapper) return;
+    
+    // Remove active class from all dots
+    dots.forEach(dot => dot.classList.remove('active'));
+    
+    // Calculate transform percentage
+    const transformValue = -index * 25; // Each slide is 25% of the wrapper
+    sliderWrapper.style.transform = `translateX(${transformValue}%)`;
+    
+    // Update dots
+    if (dots[index]) {
+        dots[index].classList.add('active');
+    }
+    
+    currentSlideIndex = index;
+}
+
+function changeDesktopSlide(direction) {
+    if (isMobileDevice()) return;
+    
+    let newIndex = currentSlideIndex + direction;
+    
+    if (newIndex >= totalSlides) {
+        newIndex = 0;
+    } else if (newIndex < 0) {
+        newIndex = totalSlides - 1;
+    }
+    
+    showSlide(newIndex);
+}
+
+function currentSlide(index) {
+    if (isMobileDevice()) return;
+    showSlide(index - 1); // Convert to 0-based index
+}
+
+// Mobile slider functionality
 function showMobileSlide(index) {
-    if (!isMobileDevice() || !mobileSliderWrapper) return;
+    if (!isMobileDevice() || !sliderWrapper) return;
     
     // Remove active class from all dots
     mobileDots.forEach(dot => dot.classList.remove('active'));
@@ -2534,18 +2576,32 @@ function currentMobileSlide(index) {
     showMobileSlide(index - 1); // Convert to 0-based index
 }
 
-// Auto-advance mobile slides every 5 seconds (only on mobile)
+// Auto-advance slides every 5 seconds for both desktop and mobile
 setInterval(function() {
     if (isMobileDevice()) {
         changeMobileSlide(1);
+    } else {
+        changeDesktopSlide(1);
     }
 }, 5000);
 
 // Reset slider position on window resize
 window.addEventListener('resize', function() {
-    if (!isMobileDevice() && mobileSliderWrapper) {
-        // Reset to grid layout on desktop
-        mobileSliderWrapper.style.transform = 'translateX(0%)';
-        currentMobileSlideIndex = 0;
+    if (sliderWrapper) {
+        if (!isMobileDevice()) {
+            // Reset desktop slider
+            sliderWrapper.style.transform = 'translateX(0%)';
+            currentSlideIndex = 0;
+            // Update desktop dots
+            dots.forEach(dot => dot.classList.remove('active'));
+            if (dots[0]) dots[0].classList.add('active');
+        } else {
+            // Reset mobile slider
+            sliderWrapper.style.transform = 'translateX(0%)';
+            currentMobileSlideIndex = 0;
+            // Update mobile dots
+            mobileDots.forEach(dot => dot.classList.remove('active'));
+            if (mobileDots[0]) mobileDots[0].classList.add('active');
+        }
     }
 });
