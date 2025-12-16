@@ -393,11 +393,25 @@ h1 {
     padding: 0;
 }
 
-.banner-image {
+/* Food Gallery Styles */
+.food-gallery {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
     width: 100%;
-    height: 300px;
+}
+
+.gallery-image {
+    width: 100%;
+    height: 421px; /* Maintaining the increased height */
     object-fit: cover;
-    border-radius: 0;
+    border-radius: 8px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.gallery-image:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
 /* Order Section */
@@ -882,8 +896,13 @@ h1 {
         grid-template-columns: 1fr;
     }
     
-    .banner-image {
-        height: 200px;
+    .food-gallery {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+    
+    .gallery-image {
+        height: 281px; /* Maintaining the increased mobile height */
     }
 }
 
