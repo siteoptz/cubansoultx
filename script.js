@@ -2487,4 +2487,65 @@ function resetOrderSystem() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
+// Mobile Food Gallery Slider Functionality
+let currentMobileSlideIndex = 0;
+const totalMobileSlides = 4;
+const mobileSliderWrapper = document.querySelector('.gallery-slider-wrapper');
+const mobileDots = document.querySelectorAll('.mobile-dot');
 
+function isMobileDevice() {
+    return window.innerWidth <= 768; // Mobile breakpoint
+}
+
+function showMobileSlide(index) {
+    if (!isMobileDevice() || !mobileSliderWrapper) return;
+    
+    // Remove active class from all dots
+    mobileDots.forEach(dot => dot.classList.remove('active'));
+    
+    // Calculate transform percentage
+    const transformValue = -index * 25; // Each slide is 25% of the wrapper
+    mobileSliderWrapper.style.transform = `translateX(${transformValue}%)`;
+    
+    // Update dots
+    if (mobileDots[index]) {
+        mobileDots[index].classList.add('active');
+    }
+    
+    currentMobileSlideIndex = index;
+}
+
+function changeMobileSlide(direction) {
+    if (!isMobileDevice()) return;
+    
+    let newIndex = currentMobileSlideIndex + direction;
+    
+    if (newIndex >= totalMobileSlides) {
+        newIndex = 0;
+    } else if (newIndex < 0) {
+        newIndex = totalMobileSlides - 1;
+    }
+    
+    showMobileSlide(newIndex);
+}
+
+function currentMobileSlide(index) {
+    if (!isMobileDevice()) return;
+    showMobileSlide(index - 1); // Convert to 0-based index
+}
+
+// Auto-advance mobile slides every 5 seconds (only on mobile)
+setInterval(function() {
+    if (isMobileDevice()) {
+        changeMobileSlide(1);
+    }
+}, 5000);
+
+// Reset slider position on window resize
+window.addEventListener('resize', function() {
+    if (!isMobileDevice() && mobileSliderWrapper) {
+        // Reset to grid layout on desktop
+        mobileSliderWrapper.style.transform = 'translateX(0%)';
+        currentMobileSlideIndex = 0;
+    }
+});

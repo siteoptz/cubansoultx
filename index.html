@@ -79,10 +79,22 @@
     <section class="food-banner">
         <div class="container">
             <div class="food-gallery">
-                <img src="WhatsApp Image 2025-12-15 at 08.35.37.jpeg" alt="Authentic Cuban Food" class="gallery-image">
-                <img src="WhatsApp Image 2025-12-15 at 09.40.57.jpeg" alt="Authentic Cuban Food" class="gallery-image">
-                <img src="WhatsApp Image 2025-12-15 at 10.49.25 (1).jpeg" alt="Authentic Cuban Food" class="gallery-image">
-                <img src="WhatsApp Image 2025-12-15 at 10.49.25.jpeg" alt="Authentic Cuban Food" class="gallery-image">
+                <div class="gallery-slider-wrapper">
+                    <img src="WhatsApp Image 2025-12-15 at 08.35.37.jpeg" alt="Authentic Cuban Food" class="gallery-image">
+                    <img src="WhatsApp Image 2025-12-15 at 09.40.57.jpeg" alt="Authentic Cuban Food" class="gallery-image">
+                    <img src="WhatsApp Image 2025-12-15 at 10.49.25 (1).jpeg" alt="Authentic Cuban Food" class="gallery-image">
+                    <img src="WhatsApp Image 2025-12-15 at 10.49.25.jpeg" alt="Authentic Cuban Food" class="gallery-image">
+                </div>
+                <div class="mobile-slider-controls">
+                    <button class="mobile-slider-btn mobile-prev-btn" onclick="changeMobileSlide(-1)">‹</button>
+                    <button class="mobile-slider-btn mobile-next-btn" onclick="changeMobileSlide(1)">›</button>
+                </div>
+                <div class="mobile-slider-dots">
+                    <span class="mobile-dot active" onclick="currentMobileSlide(1)"></span>
+                    <span class="mobile-dot" onclick="currentMobileSlide(2)"></span>
+                    <span class="mobile-dot" onclick="currentMobileSlide(3)"></span>
+                    <span class="mobile-dot" onclick="currentMobileSlide(4)"></span>
+                </div>
             </div>
         </div>
     </section>

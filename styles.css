@@ -395,6 +395,10 @@ h1 {
 
 /* Food Gallery Styles */
 .food-gallery {
+    width: 100%;
+}
+
+.gallery-slider-wrapper {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 10px;
@@ -412,6 +416,12 @@ h1 {
 .gallery-image:hover {
     transform: scale(1.05);
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Mobile slider controls - hidden by default */
+.mobile-slider-controls,
+.mobile-slider-dots {
+    display: none;
 }
 
 /* Order Section */
@@ -896,13 +906,86 @@ h1 {
         grid-template-columns: 1fr;
     }
     
+    /* Mobile slider functionality */
     .food-gallery {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 8px;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .gallery-slider-wrapper {
+        display: flex;
+        grid-template-columns: none;
+        gap: 0;
+        width: 400%; /* 4 images at 100% each */
+        transition: transform 0.5s ease-in-out;
+        overflow: hidden;
     }
     
     .gallery-image {
+        flex: 0 0 25%; /* Each image is 25% of the wrapper width */
+        width: 25%;
         height: 281px; /* Maintaining the increased mobile height */
+        margin-right: 10px;
+    }
+    
+    .gallery-image:last-child {
+        margin-right: 0;
+    }
+    
+    /* Mobile slider controls */
+    .mobile-slider-controls {
+        display: block;
+        position: relative;
+        margin-top: 10px;
+    }
+    
+    .mobile-slider-btn {
+        position: absolute;
+        top: -150px; /* Position over the images */
+        background: rgba(0, 0, 0, 0.5);
+        color: white;
+        border: none;
+        font-size: 18px;
+        padding: 8px 12px;
+        cursor: pointer;
+        border-radius: 4px;
+        transition: background 0.3s ease;
+        z-index: 10;
+    }
+    
+    .mobile-slider-btn:hover {
+        background: rgba(0, 0, 0, 0.8);
+    }
+    
+    .mobile-prev-btn {
+        left: 10px;
+    }
+    
+    .mobile-next-btn {
+        right: 10px;
+    }
+    
+    /* Mobile slider dots */
+    .mobile-slider-dots {
+        display: block;
+        text-align: center;
+        margin-top: 15px;
+    }
+    
+    .mobile-dot {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        margin: 0 5px;
+        background: #ccc;
+        border-radius: 50%;
+        cursor: pointer;
+        transition: background 0.3s ease;
+    }
+    
+    .mobile-dot.active,
+    .mobile-dot:hover {
+        background: var(--cuban-red);
     }
 }
 
