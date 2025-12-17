@@ -831,25 +831,27 @@
 
     <!-- Authorize.Net Accept.js DISABLED for demo mode -->
     <!-- <script type="text/javascript" src="https://jstest.authorize.net/v1/Accept.js" charset="utf-8"></script> -->
-    <script src="script-demo.js"></script>
-    <script src="payment-demo.js"></script>
+    <script src="script.js" onerror="console.error('❌ script.js failed to load')"></script>
     
     <!-- DEMO PAYMENT MODE ACTIVE -->
     <script>
         console.log('🎉 DEMO PAYMENT MODE ACTIVE!');
         
-        // Debug: Check if package checkboxes exist
+        // Check what functions exist
         setTimeout(() => {
-            const packages = document.querySelectorAll('input[name="package"]');
-            console.log('Found', packages.length, 'package checkboxes');
+            console.log('Available functions:');
+            console.log('- updateOrderTotal exists:', typeof window.updateOrderTotal);
+            console.log('- initializeMenuOrderSystem exists:', typeof window.initializeMenuOrderSystem);
+            console.log('- handlePackageSelection exists:', typeof window.handlePackageSelection);
             
-            packages.forEach((pkg, i) => {
-                console.log(`Package ${i}:`, pkg.value, pkg.dataset.price);
-                pkg.addEventListener('change', () => {
-                    console.log('Package clicked:', pkg.value, pkg.checked);
-                });
-            });
-        }, 1000);
+            // Try to manually call updateOrderTotal
+            if (typeof window.updateOrderTotal === 'function') {
+                console.log('Manually calling updateOrderTotal...');
+                window.updateOrderTotal();
+            } else {
+                console.error('❌ updateOrderTotal function not found!');
+            }
+        }, 2000);
         
         // Completely override the payment function
         window.processModalPayment = function() {

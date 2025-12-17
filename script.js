@@ -1823,7 +1823,7 @@ function processModalPayment() {
 
 // DEMO MODE: responseHandler function disabled
 function responseHandler(response) {
-        console.log('=== RESPONSE HANDLER CALLED ===');
+    console.log('=== RESPONSE HANDLER CALLED ===');
         console.log('Full Accept.js response:', response);
         
         if (!response) {
@@ -1876,7 +1876,6 @@ function responseHandler(response) {
             }
         }
     }
-}
 
 // Submit order with payment information
 function submitOrderWithPayment(opaqueData, amount) {
