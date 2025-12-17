@@ -1,5 +1,6 @@
-// Cuban Soul Food Truck - JavaScript - VERSION 4 DEMO MODE
-console.log('🔥 SCRIPT VERSION 4 LOADED - DEMO MODE ACTIVE 🔥');
+// Cuban Soul Food Truck - DEMO MODE JavaScript (NO AUTHORIZE.NET)
+console.log('🎉 NEW DEMO SCRIPT LOADED - NO CACHE ISSUES! 🎉');
+alert('Demo Mode Active - Payment processing will be simulated');
 
 document.addEventListener('DOMContentLoaded', function() {
     // Mobile menu toggle

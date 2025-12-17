@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cuban Soul - Authentic Cuban Food Truck | The Woodlands, TX</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Cuban Soul - Authentic Cuban Food Truck | The Woodlands, TX [CACHE BUSTER v5]</title>
     <meta name="description" content="Cuban Soul brings authentic Cuban cuisine to The Woodlands, TX and surrounding areas. Sabor Que Viene Del Alma - flavor that comes from the soul.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -826,8 +829,51 @@
     <!-- Catering Order Button (floating) -->
     <a href="#menu" id="cateringBtn" class="subscribe-float-btn">🍽️ Place Your Catering Order!</a>
 
-    <!-- Authorize.Net Accept.js (Sandbox) -->
-    <script type="text/javascript" src="https://jstest.authorize.net/v1/Accept.js" charset="utf-8"></script>
-    <script src="script.js"></script>
+    <!-- Authorize.Net Accept.js DISABLED for demo mode -->
+    <!-- <script type="text/javascript" src="https://jstest.authorize.net/v1/Accept.js" charset="utf-8"></script> -->
+    <script src="script-demo.js"></script>
+    <script src="payment-demo.js"></script>
+    
+    <!-- TIMESTAMPED CACHE BUSTER: 2025-12-16-15:30 -->
+    <script>
+        // Immediate execution - should show red box if JS works
+        document.write('<div style="position:fixed;top:0;left:0;background:red;color:white;z-index:99999;padding:10px;font-size:14px;">🔥 JS ACTIVE @ ' + new Date().toLocaleTimeString() + ' 🔥</div>');
+        console.log('🔥 TIMESTAMPED DEMO SCRIPT @ ' + new Date().toLocaleTimeString() + ' 🔥');
+        alert('CACHE BUSTER WORKING - Time: ' + new Date().toLocaleTimeString());
+        
+        // Completely override the payment function
+        window.processModalPayment = function() {
+            console.log('🎉 INLINE DEMO PAYMENT STARTED!');
+            
+            // Show processing
+            const submitBtn = document.querySelector('.payment-submit-modal');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '⏳ Processing Demo Payment...';
+            }
+            
+            // Simulate success after 2 seconds
+            setTimeout(function() {
+                console.log('✅ Inline demo payment successful!');
+                
+                // Reset button
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '💳 Process Payment';
+                }
+                
+                // Show success
+                alert('🎉 Payment Successful!\\n\\nDemo Mode - No real payment processed.\\nYour order has been recorded.');
+                
+                // Close modal
+                const modal = document.getElementById('paymentModal');
+                if (modal) {
+                    modal.style.display = 'none';
+                }
+            }, 2000);
+        };
+        
+        console.log('Inline demo payment function ready!');
+    </script>
 </body>
 </html>
