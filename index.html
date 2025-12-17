@@ -834,12 +834,9 @@
     <script src="script-demo.js"></script>
     <script src="payment-demo.js"></script>
     
-    <!-- TIMESTAMPED CACHE BUSTER: 2025-12-16-15:30 -->
+    <!-- DEMO PAYMENT MODE ACTIVE -->
     <script>
-        // Immediate execution - should show red box if JS works
-        document.write('<div style="position:fixed;top:0;left:0;background:red;color:white;z-index:99999;padding:10px;font-size:14px;">🔥 JS ACTIVE @ ' + new Date().toLocaleTimeString() + ' 🔥</div>');
-        console.log('🔥 TIMESTAMPED DEMO SCRIPT @ ' + new Date().toLocaleTimeString() + ' 🔥');
-        alert('CACHE BUSTER WORKING - Time: ' + new Date().toLocaleTimeString());
+        console.log('🎉 DEMO PAYMENT MODE ACTIVE!');
         
         // Completely override the payment function
         window.processModalPayment = function() {
