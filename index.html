@@ -838,6 +838,19 @@
     <script>
         console.log('🎉 DEMO PAYMENT MODE ACTIVE!');
         
+        // Debug: Check if package checkboxes exist
+        setTimeout(() => {
+            const packages = document.querySelectorAll('input[name="package"]');
+            console.log('Found', packages.length, 'package checkboxes');
+            
+            packages.forEach((pkg, i) => {
+                console.log(`Package ${i}:`, pkg.value, pkg.dataset.price);
+                pkg.addEventListener('change', () => {
+                    console.log('Package clicked:', pkg.value, pkg.checked);
+                });
+            });
+        }, 1000);
+        
         // Completely override the payment function
         window.processModalPayment = function() {
             console.log('🎉 INLINE DEMO PAYMENT STARTED!');
