@@ -395,9 +395,11 @@ h1 {
 
 /* Food Gallery Styles */
 .food-gallery {
-    width: 125%; /* Increased by 25% */
+    width: 100%;
+    max-width: 900px; /* Set a reasonable max width for better display */
     margin: 0 auto;
     position: relative;
+    padding: 0 20px; /* Add some padding for smaller screens */
 }
 
 .gallery-container {
@@ -967,7 +969,9 @@ h1 {
     
     /* Mobile slider functionality */
     .food-gallery {
-        width: 100%; /* Reset width on mobile */
+        width: 100%;
+        max-width: 100%; /* Full width on mobile */
+        padding: 0 10px; /* Reduce padding on mobile */
         position: relative;
         overflow: hidden;
     }

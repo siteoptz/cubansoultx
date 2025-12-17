@@ -2547,7 +2547,7 @@ function showMobileSlide(index) {
     
     // Calculate transform percentage
     const transformValue = -index * 25; // Each slide is 25% of the wrapper
-    mobileSliderWrapper.style.transform = `translateX(${transformValue}%)`;
+    sliderWrapper.style.transform = `translateX(${transformValue}%)`;
     
     // Update dots
     if (mobileDots[index]) {
