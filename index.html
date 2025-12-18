@@ -829,15 +829,15 @@
     <!-- Catering Order Button (floating) -->
     <a href="#menu" id="cateringBtn" class="subscribe-float-btn">🍽️ Place Your Catering Order!</a>
 
-    <!-- Authorize.Net Accept.js DISABLED for demo mode -->
-    <!-- <script type="text/javascript" src="https://jstest.authorize.net/v1/Accept.js" charset="utf-8"></script> -->
+    <!-- Authorize.Net Accept.js ENABLED for live transactions -->
+    <script type="text/javascript" src="https://js.authorize.net/v1/Accept.js" charset="utf-8"></script>
     <script src="script.js" onerror="console.error('❌ script.js failed to load')"></script>
     
-    <!-- DEMO PAYMENT MODE ACTIVE -->
+    <!-- LIVE PAYMENT MODE ACTIVE -->
     <script>
-        console.log('🎉 DEMO PAYMENT MODE ACTIVE!');
+        console.log('🚀 LIVE PAYMENT MODE ACTIVE!');
         
-        // Check what functions exist
+        // Initialize order system after page loads
         setTimeout(() => {
             console.log('Available functions:');
             console.log('- updateOrderTotal exists:', typeof window.updateOrderTotal);
@@ -853,39 +853,7 @@
             }
         }, 2000);
         
-        // Completely override the payment function
-        window.processModalPayment = function() {
-            console.log('🎉 INLINE DEMO PAYMENT STARTED!');
-            
-            // Show processing
-            const submitBtn = document.querySelector('.payment-submit-modal');
-            if (submitBtn) {
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = '⏳ Processing Demo Payment...';
-            }
-            
-            // Simulate success after 2 seconds
-            setTimeout(function() {
-                console.log('✅ Inline demo payment successful!');
-                
-                // Reset button
-                if (submitBtn) {
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = '💳 Process Payment';
-                }
-                
-                // Show success
-                alert('🎉 Payment Successful!\\n\\nDemo Mode - No real payment processed.\\nYour order has been recorded.');
-                
-                // Close modal
-                const modal = document.getElementById('paymentModal');
-                if (modal) {
-                    modal.style.display = 'none';
-                }
-            }, 2000);
-        };
-        
-        console.log('Inline demo payment function ready!');
+        console.log('Live payment processing ready!');
     </script>
 </body>
 </html>

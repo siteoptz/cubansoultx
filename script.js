@@ -1,5 +1,5 @@
-// Cuban Soul Food Truck - JavaScript - VERSION 4 DEMO MODE
-console.log('🔥 SCRIPT VERSION 4 LOADED - DEMO MODE ACTIVE 🔥');
+// Cuban Soul Food Truck - JavaScript - VERSION 4 LIVE MODE
+console.log('🔥 SCRIPT VERSION 4 LOADED - LIVE TRANSACTIONS ENABLED 🔥');
 
 document.addEventListener('DOMContentLoaded', function() {
     // Mobile menu toggle
@@ -1054,12 +1054,12 @@ const authNetConfig = {
     clientKey: '3vMZvn92aMMSfzcyG5888qTUwjvNhY983jAuuy6mk9gZZFwFYv4bhF55856RA9SA',  // Your Production Public Client Key  
     apiLoginID: '38fAR7rP', // Your Production API Login ID
     transactionKey: '94RTV4cRg23Xa9ct', // Your Production Transaction Key
-    environment: 'demo', // Temporary demo mode until credentials are resolved
+    environment: 'production', // Live production environment
     
     // Known working sandbox credentials for testing (if needed)
     sandboxClientKey: '7UL8Sr3wE8e8m6Ag5RMdhmxGprzgQ35YWBjPw6P3LKfj8xUfb8Lrr9r6KSTH7TDL',
     sandboxAPILoginID: '2EKN8r9zC',
-    useDemoMode: true // Enable demo mode temporarily
+    useDemoMode: false // Live payment processing enabled
 };
 
 // Initialize payment modal
@@ -1495,34 +1495,103 @@ function validateModalPaymentFields() {
     return true;
 }
 
-// Process payment from modal - DEMO MODE ONLY
+// Process payment from modal - LIVE MODE
 function processModalPayment() {
-    console.log('🎉🎉🎉 VERSION 4 DEMO PAYMENT PROCESSING - Accept.js disabled 🎉🎉🎉');
+    console.log('🚀 LIVE PAYMENT PROCESSING - Authorize.Net Accept.js enabled 🚀');
+    
+    // Check if demo mode is enabled first
+    if (authNetConfig.useDemoMode === true) {
+        console.log('🎭 DEMO MODE: Processing demo payment...');
+        alert('DEMO MODE ACTIVATED - Payment will be simulated');
+        showModalPaymentProcessing();
+        
+        setTimeout(() => {
+            console.log('🎭 DEMO MODE: Payment completed successfully!');
+            hideModalPaymentProcessing();
+            showSuccessMessage('🎉 Payment Successful (Demo Mode)! Your order has been processed.');
+            const modal = document.getElementById('paymentModal');
+            if (modal) modal.style.display = 'none';
+            resetOrderSystem();
+        }, 2000);
+        return;
+    }
+    
+    const orderSummary = getCurrentOrderSummary();
+    console.log('Order summary:', orderSummary);
+    const totalAmount = orderSummary.total;
+    console.log('Total amount:', totalAmount);
+    
+    // Check if packages are selected
+    if (!orderSummary.packages || orderSummary.packages.length === 0) {
+        console.log('ERROR: No packages selected');
+        showPaymentError('Please select at least one package before processing payment');
+        return;
+    }
+    
+    // Basic form validation
+    const cardNumber = document.getElementById('modalCardNumber').value.replace(/\s/g, '');
+    const expiryDate = document.getElementById('modalExpiryDate').value;
+    const cvv = document.getElementById('modalCvv').value;
+    const cardholderName = document.getElementById('modalCardholderName').value;
+    
+    if (!cardNumber || cardNumber.length < 13 || cardNumber.length > 19) {
+        showPaymentError('Please enter a valid card number');
+        return;
+    }
+    if (!expiryDate || !expiryDate.includes('/')) {
+        showPaymentError('Please enter a valid expiry date (MM/YY)');
+        return;
+    }
+    if (!cvv || cvv.length < 3 || cvv.length > 4) {
+        showPaymentError('Please enter a valid CVV');
+        return;
+    }
+    if (!cardholderName || cardholderName.trim().length < 2) {
+        showPaymentError('Please enter the cardholder name');
+        return;
+    }
     
     // Show processing indicator
     showModalPaymentProcessing();
     
-    // Simulate payment processing delay
-    setTimeout(() => {
-        console.log('✅ Demo payment completed successfully!');
-        
-        // Hide processing indicator
+    // Check if Accept.js is loaded
+    if (typeof Accept === 'undefined') {
+        console.error('ERROR: Accept.js not loaded');
+        showPaymentError('Payment system not ready. Please try again in a moment.');
         hideModalPaymentProcessing();
-        
-        // Show success message
-        alert('🎉 Payment Successful!\n\nThis is demo mode - no real payment was processed.\nYour order has been recorded.');
-        
-        // Close payment modal
-        const modal = document.getElementById('paymentModal');
-        if (modal) {
-            modal.style.display = 'none';
+        return;
+    }
+    console.log('Accept.js is loaded successfully');
+    
+    // Parse expiry date
+    const [month, year] = expiryDate.split('/');
+    const fullYear = '20' + year;
+    
+    // Prepare secure payment data
+    const secureData = {
+        cardData: {
+            cardNumber: cardNumber.replace(/\s/g, ''),
+            month: month.padStart(2, '0'),
+            year: fullYear,
+            cardCode: cvv
+        },
+        authData: {
+            clientKey: authNetConfig.clientKey,
+            apiLoginID: authNetConfig.apiLoginID
         }
-        
-        // Reset the order form
-        resetOrderSystem();
-        
-        console.log('Demo payment flow completed!');
-    }, 2000);
+    };
+
+    try {
+        console.log('Processing payment with Authorize.Net Accept.js');
+        Accept.dispatchData(secureData, function(response) {
+            console.log('Accept.js response received!');
+            responseHandler(response);
+        });
+    } catch (error) {
+        console.error('Accept.js error:', error);
+        showPaymentError('Payment processing error. Please check your card information and try again.');
+        hideModalPaymentProcessing();
+    }
 }
 
 // OLD AUTHORIZE.NET CODE DISABLED FOR DEMO MODE
@@ -1821,7 +1890,7 @@ function processModalPayment() {
 
 */
 
-// DEMO MODE: responseHandler function disabled
+// LIVE MODE: responseHandler function enabled
 function responseHandler(response) {
     console.log('=== RESPONSE HANDLER CALLED ===');
         console.log('Full Accept.js response:', response);
