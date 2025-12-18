@@ -2137,8 +2137,8 @@ function showPaymentSuccess(amount) {
     }, 5000);
 }
 
-// Submit modal order with payment using FormSubmit
-function submitModalOrderWithPayment(opaqueData, amount) {
+// Submit modal order with payment processing
+async function submitModalOrderWithPayment(opaqueData, amount) {
     console.log('=== SUBMIT MODAL ORDER WITH PAYMENT STARTED ===');
     console.log('Opaque data:', opaqueData);
     console.log('Amount:', amount);
@@ -2153,24 +2153,94 @@ function submitModalOrderWithPayment(opaqueData, amount) {
             orderData[key] = value;
         }
         console.log('Form data collected:', orderData);
-
-        // Add payment data
+        
+        // Add order summary and payment data
         console.log('Adding payment data...');
         orderData.orderSummary = getCurrentOrderSummary();
-        console.log('Modal order summary captured for email:', orderData.orderSummary);
+        console.log('Modal order summary captured for payment:', orderData.orderSummary);
         orderData.paymentAmount = amount;
         orderData.paymentToken = opaqueData.dataValue;
         orderData.cardholderName = document.getElementById('modalCardholderName').value;
         
-        console.log('Complete order data prepared:', orderData);
+        // Prepare customer info for payment processing
+        const customerInfo = {
+            name: orderData.name,
+            firstName: orderData.name?.split(' ')[0] || '',
+            lastName: orderData.name?.split(' ').slice(1).join(' ') || '',
+            email: orderData.email,
+            phone: orderData.phone,
+            address: orderData.address || '',
+            city: '',
+            state: 'TX',
+            zip: ''
+        };
 
-        // Send order confirmation email via FormSubmit
-        console.log('About to call sendOrderConfirmationEmail...');
-        sendOrderConfirmationEmail(orderData, true);
+        // Prepare order details
+        const orderDetails = {
+            packageType: orderData.orderSummary.packages?.[0]?.name || 'Catering Package',
+            orderItems: orderData.items,
+            orderDate: orderData.orderDate,
+            orderTime: orderData.orderTime,
+            orderType: orderData.orderType
+        };
+        
+        console.log('Processing payment via API...');
+        
+        // Call payment processing API
+        const paymentResponse = await fetch('/api/process-payment', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                opaqueDataDescriptor: opaqueData.dataDescriptor,
+                opaqueDataValue: opaqueData.dataValue,
+                amount: amount,
+                customerInfo: customerInfo,
+                orderDetails: orderDetails
+            })
+        });
+
+        const paymentResult = await paymentResponse.json();
+        console.log('Payment API response:', paymentResult);
+
+        if (paymentResult.success) {
+            console.log('✅ PAYMENT SUCCESSFUL!');
+            console.log('Transaction ID:', paymentResult.transactionId);
+            console.log('Auth Code:', paymentResult.authCode);
+            
+            // Add transaction details to order data
+            orderData.transactionId = paymentResult.transactionId;
+            orderData.authCode = paymentResult.authCode;
+            orderData.paymentStatus = 'PROCESSED';
+            
+            // Hide processing indicator
+            hideModalPaymentProcessing();
+            
+            // Show success message
+            showPaymentSuccess(amount);
+            
+            // Send order confirmation email
+            console.log('Sending order confirmation email...');
+            sendOrderConfirmationEmail(orderData, true);
+            
+            // Close payment modal after delay
+            setTimeout(() => {
+                const modal = document.getElementById('paymentModal');
+                if (modal) modal.style.display = 'none';
+                resetOrderSystem();
+            }, 3000);
+            
+        } else {
+            console.error('❌ PAYMENT FAILED:', paymentResult.error);
+            hideModalPaymentProcessing();
+            showPaymentError(`Payment failed: ${paymentResult.error}`);
+        }
+        
     } catch (error) {
-        console.error('ERROR in submitModalOrderWithPayment:', error);
-        showPaymentError('Error processing order: ' + error.message);
+        console.error('ERROR in payment processing:', error);
         hideModalPaymentProcessing();
+        showPaymentError('Payment processing error. Please try again.');
     }
 }
 
@@ -2548,6 +2618,8 @@ function createFormSubmitEmailBody(orderData, isPaymentOrder = false) {
         emailBody += `Amount Charged: $${parseFloat(orderData.paymentAmount || 0).toFixed(2)}\n`;
         emailBody += `Payment Status: PROCESSED\n`;
         emailBody += `Cardholder Name: ${orderData.cardholderName}\n`;
+        emailBody += `Transaction ID: ${orderData.transactionId || 'N/A'}\n`;
+        emailBody += `Authorization Code: ${orderData.authCode || 'N/A'}\n`;
         emailBody += `Payment Token: ${orderData.paymentToken}\n\n`;
         emailBody += `This order has been successfully processed and payment has been collected.\n\n`;
     } else {
