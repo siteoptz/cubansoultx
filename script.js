@@ -2045,7 +2045,7 @@ Preferred Date: ${orderData.orderDate}
 Preferred Time: ${orderData.orderTime}
 
 PAYMENT INFORMATION:
-Amount Charged: $${orderData.paymentAmount.toFixed(2)}
+Amount Charged: $${parseFloat(orderData.paymentAmount || 0).toFixed(2)}
 Payment Token: ${orderData.paymentToken}
 Cardholder: ${orderData.cardholderName}
 
@@ -2111,7 +2111,7 @@ function showPaymentError(message) {
 function showPaymentSuccess(amount) {
     const successDiv = document.createElement('div');
     successDiv.className = 'payment-success';
-    successDiv.innerHTML = `✅ Payment of $${amount.toFixed(2)} processed successfully!<br>Order confirmation will be sent to your email.`;
+    successDiv.innerHTML = `✅ Payment of $${parseFloat(amount || 0).toFixed(2)} processed successfully!<br>Order confirmation will be sent to your email.`;
     successDiv.style.cssText = `
         position: fixed;
         top: 20px;
@@ -2264,7 +2264,7 @@ Order Date: ${new Date().toLocaleDateString()}
 Order Time: ${new Date().toLocaleTimeString()}
 
 ${isPaymentOrder ? `✅ PAYMENT PROCESSED
-Total Charged: $${orderData.paymentAmount.toFixed(2)}
+Total Charged: $${parseFloat(orderData.paymentAmount || 0).toFixed(2)}
 Payment Status: Successfully processed` : `📋 ORDER REQUEST SUBMITTED
 We will contact you to confirm your order and arrange payment.`}
 
@@ -2379,7 +2379,7 @@ Email: cubanfoodinternationalllc@gmail.com`;
         // Show success message with instructions
         setTimeout(() => {
             const message = isPaymentOrder ? 
-                `Payment Successful! 🎉\n\nYour order has been processed.\nTotal: $${orderData.paymentAmount.toFixed(2)}\n\nThank you email sent to: ${customerEmail}\nBusiness notifications sent to Cuban Soul team\n\nA team member will contact you shortly to confirm pickup/delivery details.` :
+                `Payment Successful! 🎉\n\nYour order has been processed.\nTotal: $${parseFloat(orderData.paymentAmount || 0).toFixed(2)}\n\nThank you email sent to: ${customerEmail}\nBusiness notifications sent to Cuban Soul team\n\nA team member will contact you shortly to confirm pickup/delivery details.` :
                 `Order Request Submitted! 📝\n\nThank you email sent to: ${customerEmail}\nBusiness notifications sent to Cuban Soul team\n\nA team member will contact you to confirm your order and arrange payment.\n\nExpected contact within 24 hours.`;
                 
             alert(message);
@@ -2545,7 +2545,7 @@ function createFormSubmitEmailBody(orderData, isPaymentOrder = false) {
     // Payment Information (if applicable)
     if (isPaymentOrder) {
         emailBody += `PAYMENT INFORMATION:\n`;
-        emailBody += `Amount Charged: $${orderData.paymentAmount.toFixed(2)}\n`;
+        emailBody += `Amount Charged: $${parseFloat(orderData.paymentAmount || 0).toFixed(2)}\n`;
         emailBody += `Payment Status: PROCESSED\n`;
         emailBody += `Cardholder Name: ${orderData.cardholderName}\n`;
         emailBody += `Payment Token: ${orderData.paymentToken}\n\n`;
