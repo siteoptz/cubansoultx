@@ -1,6 +1,9 @@
 const https = require('https');
 
 module.exports = async function handler(req, res) {
+  console.log('🔵 API ENDPOINT CALLED:', req.method, req.url);
+  console.log('🔵 Request body:', req.body);
+  
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
