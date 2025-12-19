@@ -1,8 +1,7 @@
-const https = require('https');
+import https from 'https';
 
-module.exports = (req, res) => {
-  console.log('🔵 API ENDPOINT CALLED:', req.method, req.url);
-  console.log('🔵 Request body:', req.body);
+export default async function handler(req, res) {
+  console.log('🔵 PAYMENT API ENDPOINT CALLED:', req.method, req.url);
   
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Credentials', true);
@@ -28,6 +27,12 @@ module.exports = (req, res) => {
       orderDetails
     } = req.body;
 
+    console.log('🔍 Payment request received:', {
+      amount,
+      customer: customerInfo?.email,
+      hasToken: !!opaqueDataValue
+    });
+
     // Validate required fields
     if (!opaqueDataDescriptor || !opaqueDataValue || !amount || !customerInfo) {
       return res.status(400).json({ 
@@ -37,9 +42,21 @@ module.exports = (req, res) => {
     }
 
     // Authorize.Net API credentials from environment variables
-    const apiLoginId = process.env.AUTHNET_API_LOGIN_ID || '38fAR7rP';
-    const transactionKey = process.env.AUTHNET_TRANSACTION_KEY || '94RTV4cRg23Xa9ct';
+    const apiLoginId = process.env.AUTHNET_API_LOGIN_ID;
+    const transactionKey = process.env.AUTHNET_TRANSACTION_KEY;
     const environment = process.env.AUTHNET_ENVIRONMENT || 'production';
+    
+    console.log('🔍 Environment check:', {
+      hasApiLoginId: !!apiLoginId,
+      hasTransactionKey: !!transactionKey,
+      environment
+    });
+    
+    if (!apiLoginId || !transactionKey) {
+      return res.status(500).json({
+        error: 'Server configuration error: Missing Authorize.Net credentials'
+      });
+    }
     
     // Set API endpoint based on environment
     const apiEndpoint = environment === 'sandbox' 
@@ -78,7 +95,7 @@ module.exports = (req, res) => {
             invoiceNumber: `CS-${Date.now()}`,
             description: `Cuban Soul Order - ${orderDetails?.packageType || 'Catering Package'}`
           },
-          customerIP: req.headers['x-forwarded-for'] || req.connection.remoteAddress,
+          customerIP: req.headers['x-forwarded-for'] || req.connection?.remoteAddress,
           transactionSettings: {
             setting: [
               {
@@ -91,7 +108,7 @@ module.exports = (req, res) => {
       }
     };
 
-    console.log('Processing payment:', {
+    console.log('💳 Processing payment:', {
       amount: transactionRequest.createTransactionRequest.transactionRequest.amount,
       customer: customerInfo.email,
       environment: environment,
@@ -106,7 +123,7 @@ module.exports = (req, res) => {
         response.transactionResponse.responseCode === '1') {
       
       // Transaction successful
-      console.log('Payment successful:', response.transactionResponse.transId);
+      console.log('✅ Payment successful:', response.transactionResponse.transId);
       
       return res.status(200).json({
         success: true,
@@ -123,7 +140,7 @@ module.exports = (req, res) => {
                           response.messages?.message?.[0]?.text ||
                           'Transaction failed';
       
-      console.error('Payment failed:', errorMessage);
+      console.error('❌ Payment failed:', errorMessage);
       
       return res.status(400).json({
         success: false,
@@ -134,7 +151,7 @@ module.exports = (req, res) => {
     }
 
   } catch (error) {
-    console.error('Payment processing error:', error);
+    console.error('💥 Payment processing error:', error);
     return res.status(500).json({
       success: false,
       error: 'Internal server error during payment processing',

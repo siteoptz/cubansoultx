@@ -2527,9 +2527,8 @@ async function submitModalOrderWithPayment(opaqueData, amount) {
         
         console.log('Processing payment via API...');
         
-        // Try payment processing API first, fall back to token-based processing
-        try {
-            console.log('Attempting payment via API...');
+        // SECURE TOKEN COLLECTION - No API needed, use FormSubmit for reliability
+        console.log('💳 COLLECTING SECURE PAYMENT TOKEN - No server dependencies');
             const paymentResponse = await fetch('/api/process-payment', {
                 method: 'POST',
                 headers: {

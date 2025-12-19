@@ -2,15 +2,14 @@
   "name": "cuban-soul-website",
   "version": "1.0.0",
   "description": "Cuban Soul Food Truck website with Authorize.Net payment processing",
+  "type": "module",
   "main": "index.html",
   "scripts": {
     "dev": "vercel dev",
     "build": "echo 'Static site - no build needed'",
     "start": "vercel dev"
   },
-  "dependencies": {
-    "https": "*"
-  },
+  "dependencies": {},
   "devDependencies": {},
   "engines": {
     "node": "18.x"
