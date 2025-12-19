@@ -2462,7 +2462,20 @@ function showPaymentSuccess(amount) {
 async function submitModalOrderWithPayment(opaqueData, amount) {
     console.log('=== SUBMIT MODAL ORDER WITH PAYMENT STARTED ===');
     console.log('Opaque data:', opaqueData);
-    console.log('Amount:', amount);
+    console.log('Raw Amount parameter:', amount);
+    console.log('Amount type:', typeof amount);
+    console.log('Is amount a DOM element?', amount instanceof HTMLElement);
+    
+    // CRITICAL FIX: If amount is a DOM element, get its text content
+    if (amount instanceof HTMLElement) {
+        console.log('🚨 AMOUNT IS DOM ELEMENT - EXTRACTING TEXT CONTENT');
+        console.log('DOM element innerHTML:', amount.innerHTML);
+        console.log('DOM element textContent:', amount.textContent);
+        amount = parseFloat(amount.textContent || amount.innerText || 0);
+        console.log('✅ Extracted amount from DOM:', amount);
+    }
+    
+    console.log('Final processed amount:', amount);
     
     try {
         // Collect all form data
