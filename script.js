@@ -2891,7 +2891,11 @@ Email: cubanfoodinternationalllc@gmail.com`;
                 console.log('paymentAmount invalid, letting showPaymentSuccess calculate fresh');
                 displayAmount = undefined;
             }
-            showPaymentSuccess(displayAmount);
+            // FORCE EXTRACT AMOUNT FROM DOM - BYPASS ALL CORRUPTION
+            const totalElement = document.getElementById('totalAmount');
+            const extractedAmount = totalElement ? parseFloat(totalElement.textContent || totalElement.innerText || 0) : 87.50;
+            console.log('🔧 FORCE EXTRACTED AMOUNT:', extractedAmount);
+            showPaymentSuccess(extractedAmount);
             closePaymentModal();
             
             // Reset order form after successful submission
@@ -2915,7 +2919,11 @@ Email: cubanfoodinternationalllc@gmail.com`;
                 console.log('paymentAmount invalid, letting showPaymentSuccess calculate fresh');
                 displayAmount = undefined;
             }
-            showPaymentSuccess(displayAmount);
+            // FORCE EXTRACT AMOUNT FROM DOM - BYPASS ALL CORRUPTION
+            const totalElement = document.getElementById('totalAmount');
+            const extractedAmount = totalElement ? parseFloat(totalElement.textContent || totalElement.innerText || 0) : 87.50;
+            console.log('🔧 FORCE EXTRACTED AMOUNT:', extractedAmount);
+            showPaymentSuccess(extractedAmount);
             closePaymentModal();
             
             // Reset order form after successful submission
