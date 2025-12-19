@@ -682,10 +682,13 @@ function getCurrentOrderSummary() {
     const totalText = totalElement ? totalElement.textContent || totalElement.innerText : '';
     const totalValue = parseFloat(totalText.replace(/[^0-9.-]+/g, '')) || 0;
     
-    console.log('Total calculation debug:');
+    console.log('🔍 TOTAL CALCULATION DEBUG:');
     console.log('- Total element found:', !!totalElement);
+    console.log('- Total element innerHTML:', totalElement ? totalElement.innerHTML : 'N/A');
     console.log('- Total text content:', totalText);
+    console.log('- Text after regex cleaning:', totalText.replace(/[^0-9.-]+/g, ''));
     console.log('- Parsed total value:', totalValue);
+    console.log('- Is parsed total NaN?', isNaN(totalValue));
     
     const orderSummary = {
         packages: packagesInfo,
@@ -1959,7 +1962,11 @@ function responseHandler(response) {
                     console.log('Recalculated total amount:', totalAmount);
                 }
                 
-                console.log('Final order total for payment:', totalAmount);
+                console.log('🔍 AMOUNT DEBUG - About to call submitModalOrderWithPayment:');
+                console.log('- totalAmount to be passed:', totalAmount);
+                console.log('- Is totalAmount NaN?', isNaN(totalAmount));
+                console.log('- totalAmount type:', typeof totalAmount);
+                
                 submitModalOrderWithPayment(response.opaqueData, totalAmount);
             } else {
                 console.error('ERROR: No opaque data in response');
@@ -2132,9 +2139,28 @@ function showPaymentError(message) {
 
 // Show payment success
 function showPaymentSuccess(amount) {
-    console.log('showPaymentSuccess called with amount:', amount, 'type:', typeof amount);
-    const validAmount = parseFloat(amount) || 0;
-    console.log('Processed amount:', validAmount);
+    console.log('🔍 AMOUNT DEBUG - showPaymentSuccess called with:');
+    console.log('- Raw amount:', amount);
+    console.log('- Amount type:', typeof amount);
+    console.log('- Is amount NaN?', isNaN(amount));
+    console.log('- Amount toString():', String(amount));
+    
+    // Get current order total as fallback
+    const currentOrderSummary = getCurrentOrderSummary();
+    const fallbackAmount = currentOrderSummary.total;
+    
+    console.log('- Fallback from getCurrentOrderSummary().total:', fallbackAmount);
+    console.log('- Is fallback NaN?', isNaN(fallbackAmount));
+    
+    let validAmount = parseFloat(amount);
+    if (isNaN(validAmount) || validAmount <= 0) {
+        console.warn('⚠️ Amount is invalid, using fallback');
+        validAmount = parseFloat(fallbackAmount) || 0;
+    }
+    
+    console.log('- Final validAmount:', validAmount);
+    console.log('- Final validAmount type:', typeof validAmount);
+    console.log('- Is final validAmount NaN?', isNaN(validAmount));
     
     const successDiv = document.createElement('div');
     successDiv.className = 'payment-success';
@@ -2185,8 +2211,14 @@ async function submitModalOrderWithPayment(opaqueData, amount) {
         console.log('Adding payment data...');
         orderData.orderSummary = getCurrentOrderSummary();
         console.log('Modal order summary captured for payment:', orderData.orderSummary);
+        console.log('🔍 AMOUNT DEBUG - submitModalOrderWithPayment received:');
+        console.log('- Raw amount parameter:', amount);
+        console.log('- Amount type:', typeof amount);
+        console.log('- Is amount NaN?', isNaN(amount));
+        
         orderData.paymentAmount = parseFloat(amount || 0);
-        console.log('Payment amount set to:', orderData.paymentAmount);
+        console.log('- Parsed paymentAmount:', orderData.paymentAmount);
+        console.log('- Is paymentAmount NaN?', isNaN(orderData.paymentAmount));
         orderData.paymentToken = opaqueData.dataValue;
         orderData.cardholderName = document.getElementById('modalCardholderName').value;
         
