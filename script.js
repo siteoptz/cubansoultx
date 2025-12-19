@@ -677,6 +677,16 @@ function getCurrentOrderSummary() {
     const serviceFeeCheckbox = document.getElementById('serviceFeeCheckbox');
     const serviceFeeSelected = serviceFeeCheckbox ? serviceFeeCheckbox.checked : false;
 
+    // Get total amount with error handling
+    const totalElement = document.getElementById('totalAmount');
+    const totalText = totalElement ? totalElement.textContent || totalElement.innerText : '';
+    const totalValue = parseFloat(totalText.replace(/[^0-9.-]+/g, '')) || 0;
+    
+    console.log('Total calculation debug:');
+    console.log('- Total element found:', !!totalElement);
+    console.log('- Total text content:', totalText);
+    console.log('- Parsed total value:', totalValue);
+    
     const orderSummary = {
         packages: packagesInfo,
         includedSides,
@@ -685,7 +695,7 @@ function getCurrentOrderSummary() {
         desserts,
         dressingSelections,
         serviceFeeSelected: serviceFeeSelected,
-        total: parseFloat(document.getElementById('totalAmount').textContent)
+        total: totalValue
     };
     
     console.log('Order summary created:', orderSummary);
@@ -1938,8 +1948,18 @@ function responseHandler(response) {
                 console.log('Payment token received:', response.opaqueData.dataValue);
                 console.log('About to call submitModalOrderWithPayment...');
                 const orderSummary = getCurrentOrderSummary();
-                const totalAmount = parseFloat(orderSummary.total || 0);
-                console.log('Current order total for payment:', totalAmount);
+                let totalAmount = parseFloat(orderSummary.total || 0);
+                
+                // Safety check: if total is still 0 or NaN, trigger updateOrderTotal first
+                if (isNaN(totalAmount) || totalAmount <= 0) {
+                    console.warn('Total amount invalid, recalculating...');
+                    updateOrderTotal();
+                    const newOrderSummary = getCurrentOrderSummary();
+                    totalAmount = parseFloat(newOrderSummary.total || 0);
+                    console.log('Recalculated total amount:', totalAmount);
+                }
+                
+                console.log('Final order total for payment:', totalAmount);
                 submitModalOrderWithPayment(response.opaqueData, totalAmount);
             } else {
                 console.error('ERROR: No opaque data in response');
