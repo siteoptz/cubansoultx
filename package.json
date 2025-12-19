@@ -8,16 +8,11 @@
     "build": "echo 'Static site - no build needed'",
     "start": "vercel dev"
   },
-  "dependencies": {},
+  "dependencies": {
+    "https": "*"
+  },
   "devDependencies": {},
   "engines": {
     "node": "18.x"
-  },
-  "vercel": {
-    "functions": {
-      "api/process-payment.js": {
-        "runtime": "@vercel/node@18.x"
-      }
-    }
   }
 }
