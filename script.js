@@ -2379,13 +2379,8 @@ ${isPaymentOrder ? 'Payment Token: ' + orderData.paymentToken : ''}
             console.error('❌ Error sending business email via Web3Forms:', error);
         }
         
-        // Send customer thank you email using EmailJS (alternative to Web3Forms)
-        try {
-            console.log('Attempting to send customer thank you email...');
-            console.log(`Target customer email: ${customerEmail}`);
-            
-            // Create customer-friendly email message
-            const customerMessage = `Dear ${orderData.name},
+        // Create customer-friendly email message (moved to function scope for access in catch blocks)
+        const customerMessage = `Dear ${orderData.name},
 
 Thank you for choosing Cuban Soul! We're excited to prepare your delicious order.
 
@@ -2396,7 +2391,14 @@ Order Date: ${new Date().toLocaleDateString()}
 Order Time: ${new Date().toLocaleTimeString()}
 
 ${isPaymentOrder ? `✅ PAYMENT PROCESSED
-Total Charged: $${parseFloat(orderData.paymentAmount || 0).toFixed(2)}
+Total Charged: $${(() => {
+    let amount = parseFloat(orderData.paymentAmount);
+    if (isNaN(amount) || amount <= 0) {
+        const orderSummary = getCurrentOrderSummary();
+        amount = parseFloat(orderSummary.total) || 0;
+    }
+    return amount.toFixed(2);
+})()}
 Payment Status: Successfully processed` : `📋 ORDER REQUEST SUBMITTED
 We will contact you to confirm your order and arrange payment.`}
 
@@ -2421,6 +2423,11 @@ Cuban Soul Restaurant
 Phone: (832) 510-7664
 Email: cubanfoodinternationalllc@gmail.com`;
 
+        // Send customer thank you email using multiple service fallbacks
+        try {
+            console.log('Attempting to send customer thank you email...');
+            console.log(`Target customer email: ${customerEmail}`);
+            
             // Try EmailJS as alternative email service
             try {
                 if (typeof emailjs !== 'undefined') {
