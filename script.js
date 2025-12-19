@@ -493,9 +493,15 @@ function updateOrderTotal() {
     
     let subtotal = 0;
 
-    // Add package prices if selected
+    // Add package prices if selected (with NaN protection)
     selectedPackages.forEach(selectedPackage => {
-        subtotal += parseFloat(selectedPackage.dataset.price);
+        const price = parseFloat(selectedPackage.dataset.price || 0);
+        if (!isNaN(price) && price > 0) {
+            subtotal += price;
+            console.log(`Package price added: ${price}`);
+        } else {
+            console.warn(`Invalid package price detected:`, selectedPackage.dataset.price);
+        }
     });
 
     // Calculate extra sides total from dropdowns
@@ -539,6 +545,19 @@ function updateOrderTotal() {
     
     // Calculate final total
     let total = subtotal + serviceFee + deliveryFee + tax;
+    
+    console.log('🔍 UPDATE ORDER TOTAL DEBUG:');
+    console.log(`- Subtotal: ${subtotal} (isNaN: ${isNaN(subtotal)})`);
+    console.log(`- Service Fee: ${serviceFee} (isNaN: ${isNaN(serviceFee)})`);
+    console.log(`- Delivery Fee: ${deliveryFee} (isNaN: ${isNaN(deliveryFee)})`);
+    console.log(`- Tax: ${tax} (isNaN: ${isNaN(tax)})`);
+    console.log(`- FINAL TOTAL: ${total} (isNaN: ${isNaN(total)})`);
+    
+    // NUCLEAR OPTION: If total is NaN, force it to 0 to prevent DOM corruption
+    if (isNaN(total)) {
+        console.error('🚨 TOTAL IS NaN - FORCING TO 0 TO PREVENT DOM CORRUPTION');
+        total = 0;
+    }
 
     // Update the display elements
     const subtotalAmountElement = document.getElementById('subtotalAmount');
@@ -616,7 +635,7 @@ function getCurrentOrderSummary() {
         packagesInfo.push({
             type: packageDisplayName,
             originalValue: packageName,
-            price: parseFloat(selectedPackage.dataset.price)
+            price: parseFloat(selectedPackage.dataset.price || 0) || 0
         });
     });
 
