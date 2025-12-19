@@ -677,18 +677,60 @@ function getCurrentOrderSummary() {
     const serviceFeeCheckbox = document.getElementById('serviceFeeCheckbox');
     const serviceFeeSelected = serviceFeeCheckbox ? serviceFeeCheckbox.checked : false;
 
-    // Get total amount with error handling
-    const totalElement = document.getElementById('totalAmount');
-    const totalText = totalElement ? totalElement.textContent || totalElement.innerText : '';
-    const totalValue = parseFloat(totalText.replace(/[^0-9.-]+/g, '')) || 0;
+    // CALCULATE TOTAL DIRECTLY - NEVER READ FROM DOM TO PREVENT NaN PROPAGATION
+    console.log('🔍 BULLETPROOF TOTAL CALCULATION - CALCULATING FROM SCRATCH:');
     
-    console.log('🔍 TOTAL CALCULATION DEBUG:');
-    console.log('- Total element found:', !!totalElement);
-    console.log('- Total element innerHTML:', totalElement ? totalElement.innerHTML : 'N/A');
-    console.log('- Total text content:', totalText);
-    console.log('- Text after regex cleaning:', totalText.replace(/[^0-9.-]+/g, ''));
-    console.log('- Parsed total value:', totalValue);
-    console.log('- Is parsed total NaN?', isNaN(totalValue));
+    // Calculate subtotal from packages
+    let subtotal = 0;
+    if (packagesInfo && packagesInfo.length > 0) {
+        packagesInfo.forEach(pkg => {
+            const price = parseFloat(pkg.price) || 0;
+            subtotal += price;
+            console.log(`- Package: ${pkg.type} = $${price}`);
+        });
+    }
+    
+    // Add extra sides to subtotal
+    extraSides.forEach(side => {
+        subtotal += parseFloat(side.totalPrice) || 0;
+        console.log(`- Extra side: ${side.item} = $${side.totalPrice}`);
+    });
+    
+    // Add desserts to subtotal
+    desserts.forEach(dessert => {
+        subtotal += parseFloat(dessert.totalPrice) || 0;
+        console.log(`- Dessert: ${dessert.item} = $${dessert.totalPrice}`);
+    });
+    
+    // Calculate service fee (20% or $85 minimum, whichever is higher)
+    let serviceFee = 0;
+    if (serviceFeeSelected) {
+        const twentyPercent = subtotal * 0.20;
+        serviceFee = Math.max(twentyPercent, 85.00);
+    }
+    
+    // Check if delivery is selected
+    const orderType = document.getElementById('orderType');
+    const isDelivery = orderType && orderType.value === 'delivery';
+    let deliveryFee = isDelivery ? 15.00 : 0;
+    
+    // Calculate tax (8.25% on subtotal + service fee)
+    const taxableAmount = subtotal + serviceFee;
+    const tax = taxableAmount * 0.0825;
+    
+    // Calculate final total
+    const totalValue = subtotal + serviceFee + deliveryFee + tax;
+    
+    console.log('✅ CALCULATED BREAKDOWN:');
+    console.log(`- Subtotal: $${subtotal.toFixed(2)}`);
+    console.log(`- Service Fee: $${serviceFee.toFixed(2)}`);
+    console.log(`- Delivery Fee: $${deliveryFee.toFixed(2)}`);
+    console.log(`- Tax: $${tax.toFixed(2)}`);
+    console.log(`- FINAL TOTAL: $${totalValue.toFixed(2)}`);
+    console.log(`- Is total NaN? ${isNaN(totalValue)}`);
+    
+    // Safety check - if somehow still NaN, default to 0
+    const safeTotalValue = isNaN(totalValue) ? 0 : totalValue;
     
     const orderSummary = {
         packages: packagesInfo,
@@ -698,7 +740,7 @@ function getCurrentOrderSummary() {
         desserts,
         dressingSelections,
         serviceFeeSelected: serviceFeeSelected,
-        total: totalValue
+        total: safeTotalValue
     };
     
     console.log('Order summary created:', orderSummary);
