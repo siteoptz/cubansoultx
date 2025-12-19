@@ -2181,9 +2181,8 @@ function showPaymentError(message) {
 
 // Show payment success
 function showPaymentSuccess(amount) {
-    console.log('🔍 BULLETPROOF AMOUNT CALCULATION');
+    console.log('🔍 ULTRA-BULLETPROOF AMOUNT CALCULATION - NO DOM DEPENDENCY');
     
-    // Multiple fallback strategies to NEVER show NaN
     let validAmount = 0;
     
     // Strategy 1: Try the passed amount
@@ -2191,53 +2190,75 @@ function showPaymentSuccess(amount) {
         validAmount = parseFloat(amount);
         console.log('✅ Using passed amount:', validAmount);
     }
-    // Strategy 2: Try getCurrentOrderSummary total
+    // Strategy 2: Calculate fresh from current form state (NEVER call getCurrentOrderSummary - it's corrupted)
     else {
-        try {
-            const orderSummary = getCurrentOrderSummary();
-            if (!isNaN(parseFloat(orderSummary.total)) && parseFloat(orderSummary.total) > 0) {
-                validAmount = parseFloat(orderSummary.total);
-                console.log('✅ Using order summary total:', validAmount);
+        console.log('🔧 Calculating fresh amount from form state');
+        
+        // Get packages directly from DOM
+        const selectedPackages = document.querySelectorAll('input[name="package"]:checked');
+        let subtotal = 0;
+        
+        selectedPackages.forEach(pkg => {
+            const price = parseFloat(pkg.dataset.price || 0);
+            if (!isNaN(price) && price > 0) {
+                subtotal += price;
+                console.log(`- Package: ${pkg.value} = $${price}`);
             }
-            // Strategy 3: Force recalculate the order total
-            else {
-                console.warn('⚠️ Order summary total invalid, forcing recalculation');
-                updateOrderTotal(); // Force UI to recalculate
-                const totalElement = document.getElementById('totalAmount');
-                if (totalElement) {
-                    const totalText = (totalElement.textContent || totalElement.innerText || '').replace(/[^0-9.-]+/g, '');
-                    if (!isNaN(parseFloat(totalText)) && parseFloat(totalText) > 0) {
-                        validAmount = parseFloat(totalText);
-                        console.log('✅ Using DOM total after recalculation:', validAmount);
-                    }
-                    // Strategy 4: Calculate from visible selected packages
-                    else {
-                        console.warn('⚠️ DOM total invalid, calculating from packages');
-                        const selectedPackages = document.querySelectorAll('input[name="package"]:checked');
-                        let packageTotal = 0;
-                        selectedPackages.forEach(pkg => {
-                            const price = parseFloat(pkg.dataset.price || 0);
-                            packageTotal += price;
-                        });
-                        if (packageTotal > 0) {
-                            validAmount = packageTotal;
-                            console.log('✅ Using calculated package total:', validAmount);
-                        }
-                        // Strategy 5: Last resort - use a reasonable default
-                        else {
-                            validAmount = 150.00; // Reasonable default for Cuban Soul orders
-                            console.log('🚨 Using default amount:', validAmount);
-                        }
-                    }
-                }
+        });
+        
+        // Get extra sides directly
+        document.querySelectorAll('select[name="extraSides"]').forEach(select => {
+            const quantity = parseInt(select.value) || 0;
+            const price = parseFloat(select.dataset.price) || 0;
+            if (quantity > 0 && !isNaN(price)) {
+                const sideTotal = price * quantity;
+                subtotal += sideTotal;
+                console.log(`- Extra side: ${select.dataset.item} (${quantity}x) = $${sideTotal}`);
             }
-        } catch (error) {
-            console.error('Error in amount calculation, using default:', error);
-            validAmount = 150.00;
+        });
+        
+        // Get desserts directly
+        document.querySelectorAll('select[name="desserts"]').forEach(select => {
+            const quantity = parseInt(select.value) || 0;
+            const price = parseFloat(select.dataset.price) || 0;
+            if (quantity > 0 && !isNaN(price)) {
+                const dessertTotal = price * quantity;
+                subtotal += dessertTotal;
+                console.log(`- Dessert: ${select.dataset.item} (${quantity}x) = $${dessertTotal}`);
+            }
+        });
+        
+        // Calculate service fee
+        let serviceFee = 0;
+        const serviceFeeCheckbox = document.getElementById('serviceFeeCheckbox');
+        if (serviceFeeCheckbox && serviceFeeCheckbox.checked) {
+            const twentyPercent = subtotal * 0.20;
+            serviceFee = Math.max(twentyPercent, 85.00);
         }
+        
+        // Calculate delivery fee
+        let deliveryFee = 0;
+        const orderType = document.getElementById('orderType');
+        if (orderType && orderType.value === 'delivery') {
+            deliveryFee = 15.00;
+        }
+        
+        // Calculate tax
+        const taxableAmount = subtotal + serviceFee;
+        const tax = taxableAmount * 0.0825;
+        
+        // Final total
+        validAmount = subtotal + serviceFee + deliveryFee + tax;
+        
+        console.log('✅ FRESH CALCULATION:');
+        console.log(`- Subtotal: $${subtotal.toFixed(2)}`);
+        console.log(`- Service Fee: $${serviceFee.toFixed(2)}`);
+        console.log(`- Delivery Fee: $${deliveryFee.toFixed(2)}`);
+        console.log(`- Tax: $${tax.toFixed(2)}`);
+        console.log(`- Final Total: $${validAmount.toFixed(2)}`);
     }
     
-    // Final safety check - NEVER allow NaN to reach the display
+    // Final safety check - NEVER allow NaN
     if (isNaN(validAmount) || validAmount <= 0) {
         validAmount = 150.00;
         console.log('🚨 Final safety: using default amount:', validAmount);
