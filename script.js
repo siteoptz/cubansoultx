@@ -2112,9 +2112,13 @@ function showPaymentError(message) {
 
 // Show payment success
 function showPaymentSuccess(amount) {
+    console.log('showPaymentSuccess called with amount:', amount, 'type:', typeof amount);
+    const validAmount = parseFloat(amount) || 0;
+    console.log('Processed amount:', validAmount);
+    
     const successDiv = document.createElement('div');
     successDiv.className = 'payment-success';
-    successDiv.innerHTML = `✅ Payment of $${parseFloat(amount || 0).toFixed(2)} processed successfully!<br>Order confirmation will be sent to your email.`;
+    successDiv.innerHTML = `✅ Payment of $${validAmount.toFixed(2)} processed successfully!<br>Order confirmation will be sent to your email.`;
     successDiv.style.cssText = `
         position: fixed;
         top: 20px;
@@ -2539,7 +2543,14 @@ Email: cubanfoodinternationalllc@gmail.com`;
         console.log('Web3Forms email delivery completed successfully!');
         
         if (isPaymentOrder) {
-            showPaymentSuccess(orderData.paymentAmount);
+            // Calculate amount from order summary if paymentAmount is invalid
+            let displayAmount = parseFloat(orderData.paymentAmount);
+            if (isNaN(displayAmount) || displayAmount <= 0) {
+                const currentOrder = getCurrentOrderSummary();
+                displayAmount = parseFloat(currentOrder.total || 0);
+                console.log('Using order summary total for display:', displayAmount);
+            }
+            showPaymentSuccess(displayAmount);
             closePaymentModal();
             
             // Reset order form after successful submission
@@ -2555,7 +2566,14 @@ Email: cubanfoodinternationalllc@gmail.com`;
         
         // Fallback: Still show success since payment was processed
         if (isPaymentOrder) {
-            showPaymentSuccess(orderData.paymentAmount);
+            // Calculate amount from order summary if paymentAmount is invalid
+            let displayAmount = parseFloat(orderData.paymentAmount);
+            if (isNaN(displayAmount) || displayAmount <= 0) {
+                const currentOrder = getCurrentOrderSummary();
+                displayAmount = parseFloat(currentOrder.total || 0);
+                console.log('Using order summary total for display:', displayAmount);
+            }
+            showPaymentSuccess(displayAmount);
             closePaymentModal();
             
             // Reset order form after successful submission
