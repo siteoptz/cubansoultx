@@ -2161,7 +2161,8 @@ async function submitModalOrderWithPayment(opaqueData, amount) {
         console.log('Adding payment data...');
         orderData.orderSummary = getCurrentOrderSummary();
         console.log('Modal order summary captured for payment:', orderData.orderSummary);
-        orderData.paymentAmount = amount;
+        orderData.paymentAmount = parseFloat(amount || 0);
+        console.log('Payment amount set to:', orderData.paymentAmount);
         orderData.paymentToken = opaqueData.dataValue;
         orderData.cardholderName = document.getElementById('modalCardholderName').value;
         
@@ -2397,7 +2398,8 @@ Phone: (832) 510-7664
 Email: cubanfoodinternationalllc@gmail.com`;
 
             // Try EmailJS as alternative email service
-            if (typeof emailjs !== 'undefined') {
+            try {
+                if (typeof emailjs !== 'undefined') {
                 console.log('📧 Using EmailJS for customer email...');
                 
                 const emailParams = {
@@ -2409,13 +2411,48 @@ Email: cubanfoodinternationalllc@gmail.com`;
                     reply_to: 'cubanfoodinternationalllc@gmail.com'
                 };
                 
-                // Use EmailJS service - you'll need to set up a template
-                const result = await emailjs.send('service_cuban_soul', 'template_customer_thanks', emailParams);
-                console.log(`✅ Customer email sent via EmailJS to: ${customerEmail}`);
+                // Use EmailJS service - with error handling
+                try {
+                    const result = await emailjs.send('service_cuban_soul', 'template_customer_thanks', emailParams);
+                    console.log(`✅ Customer email sent via EmailJS to: ${customerEmail}`);
+                } catch (emailjsError) {
+                    console.error('❌ EmailJS error:', emailjsError);
+                    throw emailjsError; // Re-throw to trigger fallback
+                }
+                } else {
+                    throw new Error('EmailJS not available');
+                }
+            } catch (emailError) {
+                console.warn('⚠️  EmailJS failed:', emailError.message);
+                console.log('📧 Using Web3Forms backup for customer email...');
                 
-            } else {
-                // Fallback: Use direct email client approach
-                console.log('📧 Creating mailto link for customer email...');
+                // Fallback to Web3Forms for customer email
+                try {
+                    const customerFormData = new FormData();
+                    customerFormData.append('access_key', '2b25db39-e0c6-4dd3-b1c2-85056f0efad0');
+                    customerFormData.append('to_email', customerEmail);
+                    customerFormData.append('from_email', 'cubanfoodinternationalllc@gmail.com');
+                    customerFormData.append('from_name', 'Cuban Soul Restaurant');
+                    customerFormData.append('subject', `Thank you for your order, ${orderData.name}!`);
+                    customerFormData.append('message', customerMessage);
+                    customerFormData.append('_replyto', 'cubanfoodinternationalllc@gmail.com');
+                    
+                    const customerResponse = await fetch('https://api.web3forms.com/submit', {
+                        method: 'POST',
+                        body: customerFormData
+                    });
+                    
+                    if (customerResponse.ok) {
+                        console.log(`✅ Customer email sent via Web3Forms backup to: ${customerEmail}`);
+                    } else {
+                        throw new Error(`Web3Forms backup failed: ${customerResponse.status}`);
+                    }
+                    
+                } catch (backupError) {
+                    console.warn('⚠️  All email services failed:', backupError.message);
+                    
+                    // Final fallback: Use direct email client approach  
+                    console.log('📧 Creating mailto link for customer email...');
                 
                 const emailSubject = encodeURIComponent(`Thank you for your order, ${orderData.name}!`);
                 const emailBody = encodeURIComponent(customerMessage);
@@ -2450,6 +2487,7 @@ Email: cubanfoodinternationalllc@gmail.com`;
                 
                 document.body.removeChild(emailLink);
                 console.log('✅ Customer email fallback prepared');
+                }
             }
             
         } catch (error) {
