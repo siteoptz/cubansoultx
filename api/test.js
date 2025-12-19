@@ -1,4 +1,4 @@
-module.exports = async (req, res) => {
+export default async function handler(req, res) {
   console.log('🟢 TEST ENDPOINT CALLED');
   
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -16,4 +16,4 @@ module.exports = async (req, res) => {
     method: req.method,
     timestamp: new Date().toISOString()
   });
-};
+}

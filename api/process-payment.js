@@ -1,6 +1,6 @@
-const https = require('https');
+import https from 'https';
 
-module.exports = async (req, res) => {
+export default async function handler(req, res) {
   console.log('🔵 API ENDPOINT CALLED:', req.method, req.url);
   console.log('🔵 Request body:', req.body);
   

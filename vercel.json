@@ -1,13 +1,13 @@
 {
   "version": 2,
   "functions": {
-    "api/process-payment.js": {
+    "api/*.js": {
       "runtime": "@vercel/node@18.x"
     }
   },
   "env": {
     "AUTHNET_API_LOGIN_ID": "38fAR7rP",
-    "AUTHNET_TRANSACTION_KEY": "@authnet-transaction-key",
+    "AUTHNET_TRANSACTION_KEY": "@authnet-transaction-key", 
     "AUTHNET_ENVIRONMENT": "production"
   }
 }
