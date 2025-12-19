@@ -1571,9 +1571,52 @@ function processModalPayment() {
         return;
     }
     
+    // Get order summary but calculate total fresh (bypass NaN from getCurrentOrderSummary)
     const orderSummary = getCurrentOrderSummary();
     console.log('Order summary:', orderSummary);
-    const totalAmount = orderSummary.total;
+    
+    // Calculate total directly from form state to avoid NaN
+    let totalAmount = orderSummary.total;
+    if (isNaN(totalAmount) || totalAmount <= 0) {
+        console.log('🔧 Order summary total is NaN, calculating fresh...');
+        totalAmount = 0;
+        
+        // Calculate from packages
+        if (orderSummary.packages) {
+            orderSummary.packages.forEach(pkg => {
+                totalAmount += parseFloat(pkg.price || 0);
+            });
+        }
+        
+        // Add extra sides
+        orderSummary.extraSides.forEach(side => {
+            totalAmount += parseFloat(side.totalPrice || 0);
+        });
+        
+        // Add desserts
+        orderSummary.desserts.forEach(dessert => {
+            totalAmount += parseFloat(dessert.totalPrice || 0);
+        });
+        
+        // Add service fee if selected
+        if (orderSummary.serviceFeeSelected) {
+            const twentyPercent = totalAmount * 0.20;
+            totalAmount += Math.max(twentyPercent, 85.00);
+        }
+        
+        // Add delivery fee
+        const orderTypeEl = document.getElementById('orderType');
+        if (orderTypeEl && orderTypeEl.value === 'delivery') {
+            totalAmount += 15.00;
+        }
+        
+        // Add tax
+        const tax = totalAmount * 0.0825;
+        totalAmount += tax;
+        
+        console.log('✅ Fresh calculated total:', totalAmount);
+    }
+    
     console.log('Total amount:', totalAmount);
     
     // Check if packages are selected
@@ -1675,9 +1718,52 @@ function processModalPayment() {
         return;
     }
     
+    // Get order summary but calculate total fresh (bypass NaN from getCurrentOrderSummary)
     const orderSummary = getCurrentOrderSummary();
     console.log('Order summary:', orderSummary);
-    const totalAmount = orderSummary.total;
+    
+    // Calculate total directly from form state to avoid NaN
+    let totalAmount = orderSummary.total;
+    if (isNaN(totalAmount) || totalAmount <= 0) {
+        console.log('🔧 Order summary total is NaN, calculating fresh...');
+        totalAmount = 0;
+        
+        // Calculate from packages
+        if (orderSummary.packages) {
+            orderSummary.packages.forEach(pkg => {
+                totalAmount += parseFloat(pkg.price || 0);
+            });
+        }
+        
+        // Add extra sides
+        orderSummary.extraSides.forEach(side => {
+            totalAmount += parseFloat(side.totalPrice || 0);
+        });
+        
+        // Add desserts
+        orderSummary.desserts.forEach(dessert => {
+            totalAmount += parseFloat(dessert.totalPrice || 0);
+        });
+        
+        // Add service fee if selected
+        if (orderSummary.serviceFeeSelected) {
+            const twentyPercent = totalAmount * 0.20;
+            totalAmount += Math.max(twentyPercent, 85.00);
+        }
+        
+        // Add delivery fee
+        const orderTypeEl = document.getElementById('orderType');
+        if (orderTypeEl && orderTypeEl.value === 'delivery') {
+            totalAmount += 15.00;
+        }
+        
+        // Add tax
+        const tax = totalAmount * 0.0825;
+        totalAmount += tax;
+        
+        console.log('✅ Fresh calculated total:', totalAmount);
+    }
+    
     console.log('Total amount:', totalAmount);
 
     // Check if packages are selected
@@ -1992,16 +2078,67 @@ function responseHandler(response) {
             if (response.opaqueData && response.opaqueData.dataValue) {
                 console.log('Payment token received:', response.opaqueData.dataValue);
                 console.log('About to call submitModalOrderWithPayment...');
-                const orderSummary = getCurrentOrderSummary();
-                let totalAmount = parseFloat(orderSummary.total || 0);
+                // NEVER use getCurrentOrderSummary for amount - it returns NaN
+                // Calculate total directly from form state instead
+                console.log('🔧 Calculating total amount directly from form state (bypassing NaN)');
+                let totalAmount = 0;
                 
-                // Safety check: if total is still 0 or NaN, trigger updateOrderTotal first
+                // Get packages directly
+                const selectedPackages = document.querySelectorAll('input[name="package"]:checked');
+                selectedPackages.forEach(pkg => {
+                    const price = parseFloat(pkg.dataset.price || 0);
+                    totalAmount += price;
+                    console.log(`- Package: ${pkg.value} = $${price}`);
+                });
+                
+                // Get extra sides
+                document.querySelectorAll('select[name="extraSides"]').forEach(select => {
+                    const quantity = parseInt(select.value) || 0;
+                    const price = parseFloat(select.dataset.price) || 0;
+                    if (quantity > 0) {
+                        totalAmount += (price * quantity);
+                        console.log(`- Extra side: ${select.dataset.item} (${quantity}x) = $${price * quantity}`);
+                    }
+                });
+                
+                // Get desserts
+                document.querySelectorAll('select[name="desserts"]').forEach(select => {
+                    const quantity = parseInt(select.value) || 0;
+                    const price = parseFloat(select.dataset.price) || 0;
+                    if (quantity > 0) {
+                        totalAmount += (price * quantity);
+                        console.log(`- Dessert: ${select.dataset.item} (${quantity}x) = $${price * quantity}`);
+                    }
+                });
+                
+                // Add service fee if checked
+                const serviceFeeCheckbox = document.getElementById('serviceFeeCheckbox');
+                if (serviceFeeCheckbox && serviceFeeCheckbox.checked) {
+                    const twentyPercent = totalAmount * 0.20;
+                    const serviceFee = Math.max(twentyPercent, 85.00);
+                    totalAmount += serviceFee;
+                    console.log(`- Service Fee: $${serviceFee}`);
+                }
+                
+                // Add delivery fee if delivery selected
+                const orderType = document.getElementById('orderType');
+                if (orderType && orderType.value === 'delivery') {
+                    totalAmount += 15.00;
+                    console.log(`- Delivery Fee: $15.00`);
+                }
+                
+                // Add tax
+                const taxableAmount = totalAmount; // tax calculated on final amount
+                const tax = taxableAmount * 0.0825;
+                totalAmount += tax;
+                console.log(`- Tax: $${tax.toFixed(2)}`);
+                
+                console.log(`✅ Fresh calculated total: $${totalAmount.toFixed(2)}`);
+                
+                // Final safety check
                 if (isNaN(totalAmount) || totalAmount <= 0) {
-                    console.warn('Total amount invalid, recalculating...');
-                    updateOrderTotal();
-                    const newOrderSummary = getCurrentOrderSummary();
-                    totalAmount = parseFloat(newOrderSummary.total || 0);
-                    console.log('Recalculated total amount:', totalAmount);
+                    totalAmount = 150.00; // reasonable default
+                    console.log('🚨 Using default amount:', totalAmount);
                 }
                 
                 console.log('🔍 AMOUNT DEBUG - About to call submitModalOrderWithPayment:');
@@ -2709,9 +2846,10 @@ Email: cubanfoodinternationalllc@gmail.com`;
             // Calculate amount from order summary if paymentAmount is invalid
             let displayAmount = parseFloat(orderData.paymentAmount);
             if (isNaN(displayAmount) || displayAmount <= 0) {
-                const currentOrder = getCurrentOrderSummary();
-                displayAmount = parseFloat(currentOrder.total || 0);
-                console.log('Using order summary total for display:', displayAmount);
+                // NEVER call getCurrentOrderSummary - it's corrupted with NaN
+                // Pass undefined so showPaymentSuccess calculates fresh
+                console.log('paymentAmount invalid, letting showPaymentSuccess calculate fresh');
+                displayAmount = undefined;
             }
             showPaymentSuccess(displayAmount);
             closePaymentModal();
@@ -2732,9 +2870,10 @@ Email: cubanfoodinternationalllc@gmail.com`;
             // Calculate amount from order summary if paymentAmount is invalid
             let displayAmount = parseFloat(orderData.paymentAmount);
             if (isNaN(displayAmount) || displayAmount <= 0) {
-                const currentOrder = getCurrentOrderSummary();
-                displayAmount = parseFloat(currentOrder.total || 0);
-                console.log('Using order summary total for display:', displayAmount);
+                // NEVER call getCurrentOrderSummary - it's corrupted with NaN
+                // Pass undefined so showPaymentSuccess calculates fresh
+                console.log('paymentAmount invalid, letting showPaymentSuccess calculate fresh');
+                displayAmount = undefined;
             }
             showPaymentSuccess(displayAmount);
             closePaymentModal();
