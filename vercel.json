@@ -1,13 +1,4 @@
 {
   "version": 2,
-  "functions": {
-    "api/**/*.js": {
-      "runtime": "@vercel/node@18.x"
-    }
-  },
-  "env": {
-    "AUTHNET_API_LOGIN_ID": "@authnet-api-login-id",
-    "AUTHNET_TRANSACTION_KEY": "@authnet-transaction-key",
-    "AUTHNET_ENVIRONMENT": "@authnet-environment"
-  }
+  "outputDirectory": "."
 }
