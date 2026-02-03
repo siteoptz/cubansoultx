@@ -851,6 +851,10 @@ function getCurrentOrderSummary() {
         desserts,
         dressingSelections,
         serviceFeeSelected: serviceFeeSelected,
+        subtotal: subtotal,
+        serviceFee: serviceFeeSelected ? { amount: serviceFee } : null,
+        deliveryFee: deliveryFee,
+        tax: tax,
         total: safeTotalValue
     };
     
@@ -3541,6 +3545,9 @@ function openAcceptHostedModal() {
         console.log('✅ Payment modal displayed');
     }
     
+    // Populate the modal order summary first (for consistency with order form)
+    populateModalOrderSummary(orderSummary);
+    
     // Show direct payment form immediately
     showDirectPaymentForm(orderData);
     
@@ -3570,43 +3577,8 @@ function prepareOrderDataForAcceptHosted(orderSummary) {
         specialInstructions: document.getElementById('specialInstructions').value.trim()
     };
 
-    // Calculate total amount
-    let totalAmount = 0;
-    
-    // Add packages
-    if (orderSummary.packages) {
-        orderSummary.packages.forEach(pkg => {
-            totalAmount += pkg.price;
-        });
-    }
-    
-    // Add extra sides
-    if (orderSummary.extraSides) {
-        orderSummary.extraSides.forEach(side => {
-            totalAmount += side.price;
-        });
-    }
-    
-    // Add desserts
-    if (orderSummary.desserts) {
-        orderSummary.desserts.forEach(dessert => {
-            totalAmount += dessert.price;
-        });
-    }
-    
-    // Add service fee
-    if (orderSummary.serviceFee && orderSummary.serviceFee.amount > 0) {
-        totalAmount += orderSummary.serviceFee.amount;
-    }
-    
-    // Add delivery fee
-    if (formData.orderType === 'delivery') {
-        totalAmount += 15.00;
-    }
-    
-    // Add tax (8.25%)
-    const taxAmount = totalAmount * 0.0825;
-    totalAmount += taxAmount;
+    // Use the existing calculated total from the order summary to ensure consistency
+    const totalAmount = orderSummary.total;
 
     return {
         amount: totalAmount.toFixed(2),
@@ -3864,8 +3836,8 @@ function showDirectPaymentForm(orderData) {
                         <h4 class="section-title">➕ Extra Sides</h4>
                         ${orderData.orderDetails.items.extraSides.map(side => 
                             `<div class="order-item">
-                                <span class="item-name">${side.item}</span>
-                                <span class="item-price">$${parseFloat(side.price).toFixed(2)}</span>
+                                <span class="item-name">${side.item} (Qty: ${side.quantity})</span>
+                                <span class="item-price">$${parseFloat(side.totalPrice).toFixed(2)}</span>
                             </div>`
                         ).join('')}
                     </div>
@@ -3877,8 +3849,8 @@ function showDirectPaymentForm(orderData) {
                         <h4 class="section-title">🍰 Desserts</h4>
                         ${orderData.orderDetails.items.desserts.map(dessert => 
                             `<div class="order-item">
-                                <span class="item-name">${dessert.item}</span>
-                                <span class="item-price">$${parseFloat(dessert.price).toFixed(2)}</span>
+                                <span class="item-name">${dessert.item} ${dessert.flavor ? `(${dessert.flavor})` : ''} (Qty: ${dessert.quantity})</span>
+                                <span class="item-price">$${parseFloat(dessert.totalPrice).toFixed(2)}</span>
                             </div>`
                         ).join('')}
                     </div>
@@ -3904,8 +3876,13 @@ function showDirectPaymentForm(orderData) {
                     <div class="total-breakdown">
                         <div class="subtotal-row">
                             <span>Subtotal:</span>
-                            <span>$${((parseFloat(orderData.amount) - parseFloat(orderData.amount) * 0.0825) - (orderData.orderDetails.orderType === 'delivery' ? 15 : 0)).toFixed(2)}</span>
+                            <span id="modalSubtotalAmount">$${orderData.orderDetails.items.subtotal ? orderData.orderDetails.items.subtotal.toFixed(2) : '0.00'}</span>
                         </div>
+                        ${orderData.orderDetails.items.serviceFee && orderData.orderDetails.items.serviceFee.amount > 0 ? `
+                        <div class="fee-row">
+                            <span>Service Fee:</span>
+                            <span>$${orderData.orderDetails.items.serviceFee.amount.toFixed(2)}</span>
+                        </div>` : ''}
                         ${orderData.orderDetails.orderType === 'delivery' ? `
                         <div class="fee-row">
                             <span>🚚 Delivery Fee:</span>
@@ -3913,7 +3890,7 @@ function showDirectPaymentForm(orderData) {
                         </div>` : ''}
                         <div class="tax-row">
                             <span>Tax (8.25%):</span>
-                            <span>$${(parseFloat(orderData.amount) * 0.0825 / 1.0825).toFixed(2)}</span>
+                            <span id="modalTaxAmount">$${orderData.orderDetails.items.tax ? orderData.orderDetails.items.tax.toFixed(2) : '0.00'}</span>
                         </div>
                         <div class="total-row">
                             <span class="total-label">Total:</span>
