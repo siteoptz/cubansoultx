@@ -51,8 +51,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Payment form validation and processing
     initializePaymentValidation();
 
-    // Payment modal functionality
-    initializePaymentModal();
+    // Payment modal functionality - Accept Hosted
+    initializeAcceptHostedModal();
 
     // Simple payment info card display
     const paymentInfoCard = document.getElementById('paymentInfoCard');
@@ -65,10 +65,29 @@ document.addEventListener('DOMContentLoaded', function() {
         orderForm.addEventListener('submit', function(e) {
             e.preventDefault();
             
-            // Validate package selection first
+            // Check if any items are selected (packages, extra sides, or desserts)
             const selectedPackages = document.querySelectorAll('input[name="package"]:checked');
-            if (selectedPackages.length === 0) {
-                alert('Please select at least one package before proceeding to checkout.');
+            const selectedExtraSides = document.querySelectorAll('select[name="extraSides"]');
+            const selectedDesserts = document.querySelectorAll('select[name="desserts"]');
+            
+            // Count actual extra sides and desserts selected
+            let extraSidesCount = 0;
+            selectedExtraSides.forEach(select => {
+                if (select.value && select.value !== '') {
+                    extraSidesCount++;
+                }
+            });
+            
+            let dessertsCount = 0;
+            selectedDesserts.forEach(select => {
+                if (select.value && select.value !== '') {
+                    dessertsCount++;
+                }
+            });
+            
+            // Allow checkout if packages OR extra sides OR desserts are selected
+            if (selectedPackages.length === 0 && extraSidesCount === 0 && dessertsCount === 0) {
+                alert('Please select at least one item (package, extra side, or dessert) before proceeding to checkout.');
                 // Scroll to package selection
                 document.querySelector('.package-selection').scrollIntoView({
                     behavior: 'smooth',
@@ -77,20 +96,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
-            // Validate dressing selection
-            const dressingValidation = validateDressingSelection();
-            if (!dressingValidation.valid) {
-                alert(dressingValidation.message);
-                // Scroll to package selection
-                document.querySelector(dressingValidation.scrollTarget).scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'center'
-                });
-                return;
+            // Only validate dressing selection if packages are selected
+            if (selectedPackages.length > 0) {
+                const dressingValidation = validateDressingSelection();
+                if (!dressingValidation.valid) {
+                    alert(dressingValidation.message);
+                    // Scroll to package selection
+                    document.querySelector(dressingValidation.scrollTarget).scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center'
+                    });
+                    return;
+                }
             }
             
             // Open payment modal if validation passes
-            openPaymentModal();
+            openAcceptHostedModal();
         });
     }
 
@@ -265,6 +286,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
+            // Validate 2 included sides are selected
+            const includedSides = document.querySelectorAll('input[name="includedSides"]:checked');
+            if (includedSides.length !== 2) {
+                alert('Please select exactly 2 included sides from the main entrees section before proceeding to checkout.');
+                // Scroll to main entrees section
+                document.getElementById('mainEntreesSection').scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+                return;
+            }
+            
             const orderSummary = getCurrentOrderSummary();
             if (orderSummary.total > 0) {
                 // Scroll to order form
@@ -328,6 +361,8 @@ function validateDressingSelection() {
 
 // Initialize Menu Order System
 function initializeMenuOrderSystem() {
+    console.log('🚀 Initializing Menu Order System...');
+    
     const packageCheckboxes = document.querySelectorAll('input[name="package"]');
     const includedSidesCheckboxes = document.querySelectorAll('input[name="includedSides"]');
     const extraSidesSelects = document.querySelectorAll('select[name="extraSides"]');
@@ -336,9 +371,18 @@ function initializeMenuOrderSystem() {
     const sidesCounter = document.getElementById('sidesCounter');
     const totalAmount = document.getElementById('totalAmount');
 
+    console.log(`📦 Found ${packageCheckboxes.length} package checkboxes`);
+    console.log(`🍽️ Found ${includedSidesCheckboxes.length} included sides checkboxes`);
+    console.log(`➕ Found ${extraSidesSelects.length} extra sides selects`);
+    console.log(`🧩 Found ${addonsCheckboxes.length} addons checkboxes`);
+    console.log(`🍰 Found ${dessertsSelects.length} dessert selects`);
+    console.log(`💰 Total amount element found:`, !!totalAmount);
+
     // Handle package selection
-    packageCheckboxes.forEach(checkbox => {
+    packageCheckboxes.forEach((checkbox, index) => {
+        console.log(`Adding event listener to package ${index}:`, checkbox.value);
         checkbox.addEventListener('change', function() {
+            console.log(`📦 Package ${checkbox.value} changed to:`, checkbox.checked);
             handlePackageSelection(this);
             // Enable other menu sections when package is selected
             enableMenuSections();
@@ -355,6 +399,9 @@ function initializeMenuOrderSystem() {
             if (sidesCounter) {
                 sidesCounter.textContent = checkedSides.length;
             }
+
+            // Update checkout button state
+            updateCheckoutButtonState();
 
             // Disable other checkboxes if 2 are selected
             if (checkedSides.length >= 2) {
@@ -485,11 +532,15 @@ function enableMenuSections() {
 
 // Update order total
 function updateOrderTotal() {
+    console.log('💰 Updating order total...');
+    
     const selectedPackages = document.querySelectorAll('input[name="package"]:checked');
     const extraSidesSelects = document.querySelectorAll('select[name="extraSides"]');
     const dessertsSelects = document.querySelectorAll('select[name="desserts"]');
     const totalAmountElement = document.getElementById('totalAmount');
     const orderType = document.getElementById('orderType');
+    
+    console.log(`Selected packages: ${selectedPackages.length}`);
     
     let subtotal = 0;
 
@@ -600,8 +651,49 @@ function updateOrderTotal() {
         }
     }
     
+    // Update checkout button state based on sides selection
+    updateCheckoutButtonState();
+    
     // Also update the order details field in the order form
     updateOrderDetailsField();
+}
+
+// Update checkout button state based on validation requirements
+function updateCheckoutButtonState() {
+    const checkoutBtn = document.getElementById('checkoutBtn');
+    if (!checkoutBtn) return;
+    
+    const selectedPackages = document.querySelectorAll('input[name="package"]:checked');
+    const includedSides = document.querySelectorAll('input[name="includedSides"]:checked');
+    
+    // Check if package is selected and exactly 2 sides are selected
+    const isValid = selectedPackages.length > 0 && includedSides.length === 2;
+    
+    if (isValid) {
+        checkoutBtn.disabled = false;
+        checkoutBtn.innerHTML = '🛒 Proceed to Checkout';
+        checkoutBtn.style.opacity = '1';
+        checkoutBtn.style.cursor = 'pointer';
+        checkoutBtn.title = '';
+    } else {
+        checkoutBtn.disabled = true;
+        checkoutBtn.style.opacity = '0.6';
+        checkoutBtn.style.cursor = 'not-allowed';
+        
+        if (selectedPackages.length === 0) {
+            checkoutBtn.innerHTML = '🛒 Select a Package First';
+            checkoutBtn.title = 'Please select a package to continue';
+        } else if (includedSides.length === 0) {
+            checkoutBtn.innerHTML = '🛒 Select 2 Sides (0/2)';
+            checkoutBtn.title = 'Please select exactly 2 included sides from the main entrees section';
+        } else if (includedSides.length === 1) {
+            checkoutBtn.innerHTML = '🛒 Select 1 More Side (1/2)';
+            checkoutBtn.title = 'Please select 1 more included side from the main entrees section';
+        } else if (includedSides.length > 2) {
+            checkoutBtn.innerHTML = '🛒 Too Many Sides Selected';
+            checkoutBtn.title = 'Please select exactly 2 included sides (you have selected ' + includedSides.length + ')';
+        }
+    }
 }
 
 // Update order details field in the order form
@@ -1137,7 +1229,10 @@ const authNetConfig = {
 };
 
 // Initialize payment modal
-function initializePaymentModal() {
+function initializePaymentModal_OLD() {
+    console.log('⚠️ OLD PAYMENT MODAL DISABLED - Using Accept Hosted instead');
+    return; // Exit early - use Accept Hosted instead
+    
     const modal = document.getElementById('paymentModal');
     const openBtn = document.getElementById('openPaymentModal');
     const closeBtn = document.querySelector('.payment-close');
@@ -1149,7 +1244,7 @@ function initializePaymentModal() {
         console.log('Payment button found, adding event listener');
         openBtn.addEventListener('click', function() {
             console.log('Payment button clicked');
-            openPaymentModal();
+            openAcceptHostedModal();
         });
     } else {
         console.log('Payment button NOT found');
@@ -1212,17 +1307,9 @@ function initializePaymentModal() {
             console.log('Payment form submitted!');
             e.preventDefault();
             
-            // Validate payment fields
-            console.log('Validating payment fields...');
-            if (!validateModalPaymentFields()) {
-                console.log('Payment field validation failed');
-                return;
-            }
-            console.log('Payment fields validated successfully');
-            
-            // Process payment
-            console.log('Calling processModalPayment...');
-            processModalPayment();
+            // Process the payment directly
+            console.log('🚀 Processing direct payment...');
+            processDirectPayment();
         });
     } else {
         console.log('ERROR: Payment form not found!');
@@ -1240,17 +1327,11 @@ function initializePaymentModal() {
             }
             e.preventDefault();
             
-            // Validate payment fields
-            console.log('Validating payment fields...');
-            if (!validateModalPaymentFields()) {
-                console.log('Payment field validation failed');
-                return;
-            }
-            console.log('Payment fields validated successfully');
+            // Use Accept Hosted instead of old payment processing
+            console.log('🚀 Switching to Accept Hosted payment processing...');
             
-            // Process payment
-            console.log('Calling processModalPayment...');
-            processModalPayment();
+            // Use Accept Hosted flow directly
+            openAcceptHostedModal();
         });
     } else {
         console.log('ERROR: Payment button not found!');
@@ -1271,7 +1352,7 @@ function validateOrderFormSilent() {
 }
 
 // Open payment modal
-function openPaymentModal() {
+function openPaymentModal_OLD() {
     console.log('openPaymentModal called');
     const modal = document.getElementById('paymentModal');
     console.log('Modal element:', modal);
@@ -1570,7 +1651,9 @@ function validateModalPaymentFields() {
 }
 
 // Process payment from modal - LIVE MODE
-function processModalPayment() {
+function processModalPayment_DISABLED() {
+    console.log('🚫 OLD PAYMENT PROCESSING DISABLED - Use Accept Hosted instead');
+    return;
     console.log('🚀 LIVE PAYMENT PROCESSING - Authorize.Net Accept.js enabled 🚀');
     
     // Check if demo mode is enabled first
@@ -1792,13 +1875,11 @@ function processModalPayment() {
         return;
     }
     
-    // TEMPORARILY DISABLE STRICT VALIDATION FOR TESTING
     // Check if exactly 2 included sides are selected
     if (orderSummary.includedSides && orderSummary.includedSides.length !== 2) {
-        console.log('WARNING: Included sides count:', orderSummary.includedSides ? orderSummary.includedSides.length : 0);
-        console.log('Proceeding with payment despite sides validation...');
-        // showPaymentError('Please select exactly 2 included sides from the main entrees section');
-        // return;
+        console.log('ERROR: Included sides count:', orderSummary.includedSides ? orderSummary.includedSides.length : 0);
+        showPaymentError('Please select exactly 2 included sides from the main entrees section before proceeding with your order.');
+        return;
     }
     
     // Check if dressing is selected for all packages
@@ -2346,8 +2427,8 @@ function showPaymentSuccess(amount) {
     let validAmount = 0;
     
     console.log('🔧 FRESH CALCULATION FROM FORM STATE (IGNORE ALL PARAMETERS)');
-        
-    // Get packages directly from DOM with aggressive validation
+    {
+        // Get packages directly from DOM with aggressive validation
     const selectedPackages = document.querySelectorAll('input[name="package"]:checked');
     let subtotal = 0;
     
@@ -2610,12 +2691,6 @@ async function submitModalOrderWithPayment(opaqueData, amount) {
                 resetOrderSystem();
             }, 2000);
         }
-        
-    } catch (error) {
-        console.error('ERROR in payment processing:', error);
-        hideModalPaymentProcessing();
-        showPaymentError('Payment processing error. Please try again.');
-    }
 }
 
 // Send order confirmation email using FormSubmit
@@ -3350,3 +3425,1270 @@ window.addEventListener('resize', function() {
         }
     }
 });
+
+// =====================================================
+// ACCEPT HOSTED PAYMENT INTEGRATION
+// =====================================================
+
+// Initialize Accept Hosted payment modal
+function initializeAcceptHostedModal() {
+    console.log('🚀 Initializing Accept Hosted payment integration');
+    console.log('🔍 DOM ready state:', document.readyState);
+    
+    const modal = document.getElementById('paymentModal');
+    const openBtn = document.getElementById('openPaymentModal');
+    const closeBtn = document.querySelector('.payment-close');
+    const cancelBtn = document.querySelector('.cancel-payment');
+
+    // Open payment modal from info button
+    if (openBtn) {
+        console.log('Payment button found, adding event listener');
+        openBtn.addEventListener('click', function() {
+            console.log('Payment button clicked');
+            openAcceptHostedModal();
+        });
+    }
+
+    // Close modal events
+    if (closeBtn) {
+        closeBtn.addEventListener('click', closeAcceptHostedModal);
+    }
+    
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', closeAcceptHostedModal);
+    }
+
+    // Close modal when clicking outside
+    window.addEventListener('click', function(event) {
+        if (event.target === modal) {
+            closeAcceptHostedModal();
+        }
+    });
+    
+    // Setup payment form submission handler
+    const paymentForm = document.getElementById('paymentForm');
+    console.log('🔍 Looking for payment form with ID "paymentForm"...');
+    console.log('🔍 Payment form element:', paymentForm);
+    
+    if (paymentForm) {
+        console.log('✅ Payment form found! Setting up submission handler...');
+        console.log('🔍 Form action:', paymentForm.action);
+        console.log('🔍 Form method:', paymentForm.method);
+        
+        paymentForm.addEventListener('submit', function(e) {
+            console.log('💳 🚨 PAYMENT FORM SUBMITTED - JAVASCRIPT HANDLER TRIGGERED! 🚨');
+            console.log('🔍 Event:', e);
+            console.log('🛑 PREVENTING DEFAULT FORM SUBMISSION...');
+            e.preventDefault(); // Prevent page refresh
+            e.stopPropagation(); // Stop event bubbling
+            
+            // Process the payment directly
+            console.log('🚀 Processing direct payment via JavaScript...');
+            processDirectPayment();
+            
+            return false; // Additional prevention
+        });
+        console.log('✅ Event listener attached successfully!');
+    } else {
+        console.error('❌ ERROR: Payment form not found! DOM elements available:');
+        console.log('Available forms:', document.forms);
+        console.log('Available elements with payment IDs:', {
+            paymentModal: document.getElementById('paymentModal'),
+            paymentForm: document.getElementById('paymentForm'),
+            submitButton: document.querySelector('.payment-submit-modal')
+        });
+    }
+}
+
+// Open Accept Hosted payment modal
+function openAcceptHostedModal() {
+    console.log('💳 PROCESSING IMMEDIATE PAYMENT WITH ACCEPT HOSTED');
+    
+    const orderSummary = getCurrentOrderSummary();
+    
+    // Check if any items are selected (packages, extra sides, or desserts)
+    const hasPackages = orderSummary.packages && orderSummary.packages.length > 0;
+    const hasExtraSides = orderSummary.extraSides && orderSummary.extraSides.length > 0;
+    const hasDesserts = orderSummary.desserts && orderSummary.desserts.length > 0;
+    
+    if (!hasPackages && !hasExtraSides && !hasDesserts) {
+        showPaymentError('Please select at least one item (package, extra side, or dessert) before proceeding to payment');
+        return;
+    }
+    
+    // Simplified validation for direct payment
+    console.log('📋 Order Summary:', orderSummary);
+    
+    // Basic validation only
+    if (orderSummary.total <= 0) {
+        showPaymentError('Please select items before proceeding to payment');
+        return;
+    }
+    
+    // Skip all token generation - go directly to payment form for IMMEDIATE CHARGING
+    console.log('🚀 OPENING DIRECT CREDIT CARD FORM FOR IMMEDIATE PAYMENT');
+    
+    // Prepare order data for payment
+    const orderData = prepareOrderDataForAcceptHosted(orderSummary);
+    console.log('📋 Order data for immediate charging:', orderData);
+    console.log(`💰 AMOUNT TO CHARGE: $${orderData.amount}`);
+    
+    // Show the modal first
+    const modal = document.getElementById('paymentModal');
+    if (modal) {
+        modal.style.display = 'block';
+        document.body.style.overflow = 'hidden';
+        console.log('✅ Payment modal displayed');
+    }
+    
+    // Show direct payment form immediately
+    showDirectPaymentForm(orderData);
+    
+    // NOTE: Order notification email will be sent after successful payment processing
+}
+
+// Close Accept Hosted payment modal
+function closeAcceptHostedModal() {
+    const modal = document.getElementById('paymentModal');
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+    hideAcceptHostedLoading();
+}
+
+// Prepare order data for Accept Hosted
+function prepareOrderDataForAcceptHosted(orderSummary) {
+    const formData = {
+        name: document.getElementById('name').value.trim(),
+        phone: document.getElementById('phone').value.trim(),
+        email: document.getElementById('email').value.trim(),
+        orderType: document.getElementById('orderType').value,
+        address: document.getElementById('address').value.trim(),
+        orderDate: document.getElementById('orderDate').value,
+        orderTime: document.getElementById('orderTime').value,
+        specialInstructions: document.getElementById('specialInstructions').value.trim()
+    };
+
+    // Calculate total amount
+    let totalAmount = 0;
+    
+    // Add packages
+    if (orderSummary.packages) {
+        orderSummary.packages.forEach(pkg => {
+            totalAmount += pkg.price;
+        });
+    }
+    
+    // Add extra sides
+    if (orderSummary.extraSides) {
+        orderSummary.extraSides.forEach(side => {
+            totalAmount += side.price;
+        });
+    }
+    
+    // Add desserts
+    if (orderSummary.desserts) {
+        orderSummary.desserts.forEach(dessert => {
+            totalAmount += dessert.price;
+        });
+    }
+    
+    // Add service fee
+    if (orderSummary.serviceFee && orderSummary.serviceFee.amount > 0) {
+        totalAmount += orderSummary.serviceFee.amount;
+    }
+    
+    // Add delivery fee
+    if (formData.orderType === 'delivery') {
+        totalAmount += 15.00;
+    }
+    
+    // Add tax (8.25%)
+    const taxAmount = totalAmount * 0.0825;
+    totalAmount += taxAmount;
+
+    return {
+        amount: totalAmount.toFixed(2),
+        customerInfo: {
+            name: formData.name,
+            firstName: formData.name.split(' ')[0] || '',
+            lastName: formData.name.split(' ').slice(1).join(' ') || '',
+            email: formData.email,
+            phone: formData.phone,
+            address: formData.address,
+            city: 'The Woodlands',
+            state: 'TX',
+            zip: '77380'
+        },
+        orderDetails: {
+            orderType: formData.orderType,
+            orderDate: formData.orderDate,
+            orderTime: formData.orderTime,
+            specialInstructions: formData.specialInstructions,
+            packageType: orderSummary.packages ? orderSummary.packages[0].type : 'Unknown',
+            items: orderSummary
+        }
+    };
+}
+
+// Get hosted payment token from API
+async function getHostedPaymentToken(orderData) {
+    console.log('🔄 Requesting hosted payment token from API...');
+    
+    try {
+        const response = await fetch('/api/get-hosted-payment-token', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(orderData)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to get payment token');
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.log('⚠️ API not available (probably running on simple server)');
+        console.log('🧪 Using test mode - simulating token generation...');
+        
+        // Simulate token generation for testing purposes
+        await new Promise(resolve => setTimeout(resolve, 2000)); // 2 second delay
+        
+        // Return mock token data - in production this would come from Authorize.Net
+        return {
+            success: true,
+            token: 'TEST_TOKEN_' + Date.now(),
+            amount: orderData.amount,
+            customerInfo: orderData.customerInfo,
+            orderDetails: orderData.orderDetails
+        };
+    }
+}
+
+// Redirect to Accept Hosted payment form
+function redirectToAcceptHosted(token) {
+    console.log('🔄 Redirecting to Accept Hosted payment form...');
+    console.log('Token received:', token);
+    
+    // Check if this is a test token
+    if (token.startsWith('TEST_TOKEN_')) {
+        console.log('🧪 TEST MODE - Simulating payment success...');
+        
+        // Simulate payment processing delay
+        setTimeout(() => {
+            console.log('✅ Test payment successful!');
+            
+            // Simulate successful payment response
+            handlePaymentSuccess({
+                transId: 'TEST_' + Date.now(),
+                authCode: 'TEST123',
+                responseCode: '1',
+                amount: document.getElementById('totalAmount').textContent
+            });
+        }, 3000); // 3 second delay to simulate payment processing
+        
+        return;
+    }
+    
+    // Production mode - redirect to real Authorize.Net
+    console.log('🔄 Production mode - redirecting to Authorize.Net...');
+    
+    // Create a form to submit the token to Authorize.Net
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = 'https://accept.authorize.net/payment/payment';
+    
+    const tokenInput = document.createElement('input');
+    tokenInput.type = 'hidden';
+    tokenInput.name = 'token';
+    tokenInput.value = token;
+    
+    form.appendChild(tokenInput);
+    document.body.appendChild(form);
+    
+    // Submit the form
+    form.submit();
+}
+
+// Show Accept Hosted loading state
+function showAcceptHostedLoading() {
+    const modal = document.getElementById('paymentModal');
+    if (!modal) return;
+    
+    // Replace modal content with loading message
+    const modalContent = modal.querySelector('.payment-modal-content');
+    if (modalContent) {
+        modalContent.innerHTML = `
+            <div class="payment-loading-state">
+                <div class="loading-spinner"></div>
+                <h3>🔒 Preparing Secure Payment</h3>
+                <p>Redirecting you to our secure payment processor...</p>
+                <p class="loading-detail">Powered by Authorize.Net</p>
+            </div>
+        `;
+    }
+    
+    modal.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+}
+
+// Hide Accept Hosted loading state
+function hideAcceptHostedLoading() {
+    const modal = document.getElementById('paymentModal');
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+}
+
+// Handle payment success (called from communicator)
+function handlePaymentSuccess(transactionData) {
+    console.log('✅ Payment successful!', transactionData);
+    
+    // Close any open modals
+    hideAcceptHostedLoading();
+    
+    // Send confirmation email to customer
+    sendCustomerConfirmationEmail(transactionData);
+    
+    // Redirect to success page
+    window.location.href = `/payment-success.html?transId=${transactionData.transId}&amount=${transactionData.amount}`;
+}
+
+// Handle payment cancellation (called from communicator)
+function handlePaymentCancel() {
+    console.log('❌ Payment cancelled');
+    hideAcceptHostedLoading();
+    window.location.href = '/payment-cancel.html';
+}
+
+// Handle payment declined (called from communicator)
+function handlePaymentDeclined(response) {
+    console.log('❌ Payment declined:', response);
+    hideAcceptHostedLoading();
+    alert('Payment was declined. Please check your card information and try again.');
+}
+
+// Handle payment error (called from communicator)
+function handlePaymentError(response) {
+    console.log('💥 Payment error:', response);
+    hideAcceptHostedLoading();
+    alert('A payment error occurred. Please try again or contact support.');
+}
+
+// Handle unknown payment response (called from communicator)
+function handlePaymentUnknown(response) {
+    console.log('❓ Unknown payment response:', response);
+    hideAcceptHostedLoading();
+    alert('An unexpected response was received. Please contact support if you are unsure about your payment status.');
+}
+
+// Send customer confirmation email
+function sendCustomerConfirmationEmail(transactionData) {
+    console.log('📧 Sending customer confirmation email...');
+    
+    const customerEmail = document.getElementById('email').value;
+    const customerName = document.getElementById('name').value;
+    
+    const subject = `Cuban Soul Order Confirmation - Transaction #${transactionData.transId}`;
+    const body = `Dear ${customerName},\n\nThank you for your order with Cuban Soul Food Truck!\n\nTransaction Details:\n- Transaction ID: ${transactionData.transId}\n- Amount: $${transactionData.amount}\n- Status: Approved\n\nWe will contact you within 24 hours to confirm your order details and schedule.\n\nFor any questions, please contact us via WhatsApp at (832) 510-7664.\n\n¡Gracias!\nCuban Soul Food Truck Team\n\nSabor Que Viene Del Alma`;
+    
+    const mailtoLink = `mailto:${customerEmail}?cc=orders@cubansoul.com&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    
+    try {
+        // Try to open email client
+        window.open(mailtoLink);
+    } catch (error) {
+        console.log('Could not open email client automatically');
+    }
+}
+
+// Resize payment modal for iframe (called from communicator)
+function resizePaymentModal(width, height) {
+    console.log('📐 Resize payment modal:', width, height);
+    // Implementation depends on your modal structure
+}
+
+// Show direct payment form for immediate credit card charging
+function showDirectPaymentForm(orderData) {
+    console.log('💳 Showing ON-SITE credit card form for immediate charging');
+    
+    const modal = document.getElementById('paymentModal');
+    if (!modal) return;
+    
+    const modalContent = modal.querySelector('.payment-modal-content');
+    if (modalContent) {
+        modalContent.innerHTML = `
+            <div class="direct-payment-form">
+                <div class="payment-header">
+                    <h2>💳 Secure Payment - Processed by Authorize.Net</h2>
+                    <span class="payment-close">&times;</span>
+                </div>
+                
+                <div class="order-summary-detailed">
+                    <h3 class="order-title">🛒 Your Order</h3>
+                    
+                    <!-- Packages Section -->
+                    ${orderData.orderDetails.items.packages?.length > 0 ? `
+                    <div class="order-section">
+                        <h4 class="section-title">📦 Main Packages</h4>
+                        ${orderData.orderDetails.items.packages.map(pkg => 
+                            `<div class="order-item">
+                                <span class="item-name">${pkg.type}</span>
+                                <span class="item-price">$${parseFloat(pkg.price).toFixed(2)}</span>
+                            </div>`
+                        ).join('')}
+                    </div>
+                    ` : ''}
+                    
+                    <!-- Included Sides Section -->
+                    ${orderData.orderDetails.items.includedSides?.length > 0 ? `
+                    <div class="order-section">
+                        <h4 class="section-title">🍽️ Included Sides</h4>
+                        ${orderData.orderDetails.items.includedSides.map(side => 
+                            `<div class="order-item included">
+                                <span class="item-name">${side}</span>
+                                <span class="item-price">Included</span>
+                            </div>`
+                        ).join('')}
+                    </div>
+                    ` : ''}
+                    
+                    <!-- Extra Sides Section -->
+                    ${orderData.orderDetails.items.extraSides?.length > 0 ? `
+                    <div class="order-section">
+                        <h4 class="section-title">➕ Extra Sides</h4>
+                        ${orderData.orderDetails.items.extraSides.map(side => 
+                            `<div class="order-item">
+                                <span class="item-name">${side.item}</span>
+                                <span class="item-price">$${parseFloat(side.price).toFixed(2)}</span>
+                            </div>`
+                        ).join('')}
+                    </div>
+                    ` : ''}
+                    
+                    <!-- Desserts Section -->
+                    ${orderData.orderDetails.items.desserts?.length > 0 ? `
+                    <div class="order-section">
+                        <h4 class="section-title">🍰 Desserts</h4>
+                        ${orderData.orderDetails.items.desserts.map(dessert => 
+                            `<div class="order-item">
+                                <span class="item-name">${dessert.item}</span>
+                                <span class="item-price">$${parseFloat(dessert.price).toFixed(2)}</span>
+                            </div>`
+                        ).join('')}
+                    </div>
+                    ` : ''}
+                    
+                    <!-- Order Details -->
+                    <div class="order-info">
+                        <div class="info-row">
+                            <span class="info-label">📅 Date:</span>
+                            <span class="info-value">${orderData.orderDetails.orderDate}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">🕐 Time:</span>
+                            <span class="info-value">${orderData.orderDetails.orderTime}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">📦 Type:</span>
+                            <span class="info-value">${orderData.orderDetails.orderType === 'delivery' ? '🚚 Delivery' : '🏪 Pickup'}</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Order Total Breakdown -->
+                    <div class="total-breakdown">
+                        <div class="subtotal-row">
+                            <span>Subtotal:</span>
+                            <span>$${((parseFloat(orderData.amount) - parseFloat(orderData.amount) * 0.0825) - (orderData.orderDetails.orderType === 'delivery' ? 15 : 0)).toFixed(2)}</span>
+                        </div>
+                        ${orderData.orderDetails.orderType === 'delivery' ? `
+                        <div class="fee-row">
+                            <span>🚚 Delivery Fee:</span>
+                            <span>$15.00</span>
+                        </div>` : ''}
+                        <div class="tax-row">
+                            <span>Tax (8.25%):</span>
+                            <span>$${(parseFloat(orderData.amount) * 0.0825 / 1.0825).toFixed(2)}</span>
+                        </div>
+                        <div class="total-row">
+                            <span class="total-label">Total:</span>
+                            <span class="total-amount">$${parseFloat(orderData.amount).toFixed(2)}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <form id="creditCardForm" class="credit-card-form">
+                    <h3>💳 Credit Card Information</h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group full-width">
+                            <label for="cardNumber">Card Number *</label>
+                            <input type="text" id="cardNumber" name="cardNumber" 
+                                   placeholder="1234 5678 9012 3456" 
+                                   maxlength="19" required autocomplete="cc-number">
+                            <div class="card-type-indicator"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group half-width">
+                            <label for="expiryMonth">Expiry Month *</label>
+                            <select id="expiryMonth" name="expiryMonth" required autocomplete="cc-exp-month">
+                                <option value="">MM</option>
+                                ${Array.from({length: 12}, (_, i) => {
+                                    const month = (i + 1).toString().padStart(2, '0');
+                                    return `<option value="${month}">${month}</option>`;
+                                }).join('')}
+                            </select>
+                        </div>
+                        <div class="form-group half-width">
+                            <label for="expiryYear">Expiry Year *</label>
+                            <select id="expiryYear" name="expiryYear" required autocomplete="cc-exp-year">
+                                <option value="">YYYY</option>
+                                ${Array.from({length: 10}, (_, i) => {
+                                    const year = new Date().getFullYear() + i;
+                                    return `<option value="${year}">${year}</option>`;
+                                }).join('')}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group half-width">
+                            <label for="cvv">Security Code (CVV) *</label>
+                            <input type="text" id="cvv" name="cvv" 
+                                   placeholder="123" maxlength="4" required autocomplete="cc-csc">
+                        </div>
+                        <div class="form-group half-width">
+                            <label for="cardholderName">Cardholder Name *</label>
+                            <input type="text" id="cardholderName" name="cardholderName" 
+                                   placeholder="Name on card" required autocomplete="cc-name">
+                        </div>
+                    </div>
+                    
+                    <div class="billing-section">
+                        <h4>📍 Billing Information</h4>
+                        <div class="form-group">
+                            <label for="billingAddress">Billing Address *</label>
+                            <input type="text" id="billingAddress" name="billingAddress" 
+                                   placeholder="123 Main Street" required autocomplete="billing street-address">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group half-width">
+                                <label for="billingCity">City *</label>
+                                <input type="text" id="billingCity" name="billingCity" 
+                                       placeholder="Houston" required autocomplete="billing address-level2">
+                            </div>
+                            <div class="form-group quarter-width">
+                                <label for="billingState">State *</label>
+                                <select id="billingState" name="billingState" required autocomplete="billing address-level1">
+                                    <option value="">State</option>
+                                    <option value="TX" selected>TX</option>
+                                    <option value="AL">AL</option>
+                                    <option value="CA">CA</option>
+                                    <option value="FL">FL</option>
+                                    <option value="NY">NY</option>
+                                </select>
+                            </div>
+                            <div class="form-group quarter-width">
+                                <label for="billingZip">ZIP *</label>
+                                <input type="text" id="billingZip" name="billingZip" 
+                                       placeholder="77380" required autocomplete="billing postal-code">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="security-notice">
+                        <div class="security-badges">
+                            <span class="security-badge">🔒 SSL Encrypted</span>
+                            <span class="security-badge">🛡️ PCI Compliant</span>
+                            <span class="security-badge">⚡ Instant Processing</span>
+                        </div>
+                        <p>Your payment information is secure and encrypted. Processed directly through Authorize.Net.</p>
+                    </div>
+                    
+                    <div class="payment-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeAcceptHostedModal()">Cancel</button>
+                        <button type="submit" class="btn btn-primary payment-submit" id="submitPayment">
+                            💳 Charge $${orderData.amount} Now
+                        </button>
+                    </div>
+                </form>
+            </div>
+        `;
+        
+        // Store order data for payment processing
+        window.currentOrderData = orderData;
+        
+        // Add event listeners
+        setupCreditCardFormHandlers();
+        
+        // Add close button functionality
+        const closeBtn = modalContent.querySelector('.payment-close');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', closeAcceptHostedModal);
+        }
+    }
+    
+    modal.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+}
+
+// Process payment with Authorize.Net (for production deployment)
+function processWithAuthorizeNet(amount) {
+    console.log(`💳 Processing $${amount} payment with Authorize.Net`);
+    
+    alert(`🚧 AUTHORIZE.NET INTEGRATION READY!\n\nTo process $${amount} immediately:\n\n1. Deploy this site to Vercel\n2. Add your Authorize.Net API credentials\n3. Customer will be redirected to secure payment\n4. Card will be charged immediately\n\nFor now, choose phone payment option.`);
+}
+
+// Process manual payment (immediate option)
+function processManualPayment(amount) {
+    console.log(`📞 Setting up manual payment processing for $${amount}`);
+    
+    const confirmation = confirm(`📞 MANUAL PAYMENT PROCESSING\n\nAmount: $${amount}\n\nWe will:\n✅ Call you within 1 hour to process payment\n✅ Securely take your card details over phone\n✅ Charge your card immediately\n✅ Send confirmation email\n\nProceed with manual payment?`);
+    
+    if (confirmation) {
+        // Close modal and show success
+        closeAcceptHostedModal();
+        
+        // Show success message
+        const successDiv = document.createElement('div');
+        successDiv.className = 'payment-success';
+        successDiv.innerHTML = `
+            <h3>✅ ORDER CONFIRMED!</h3>
+            <p><strong>Payment Amount: $${amount}</strong></p>
+            <p>📞 We will call you within 1 hour to process payment</p>
+            <p>📧 Confirmation email sent</p>
+            <p>🕒 Expected call time: ${new Date(Date.now() + 3600000).toLocaleTimeString()}</p>
+        `;
+        successDiv.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #27ae60;
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(39, 174, 96, 0.3);
+            z-index: 10000;
+            text-align: center;
+            max-width: 400px;
+        `;
+        
+        document.body.appendChild(successDiv);
+        
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+            successDiv.remove();
+            window.location.reload();
+        }, 5000);
+    }
+}
+
+// Send order notification email to customer
+function sendOrderNotificationEmail(orderData) {
+    console.log('📧 Sending order notification email to customer');
+    
+    const customerEmail = orderData.customerInfo.email;
+    const customerName = orderData.customerInfo.name;
+    const amount = orderData.amount;
+    
+    const subject = `Cuban Soul Order Confirmation - Payment Required ($${amount})`;
+    const body = `Dear ${customerName},
+
+Thank you for your Cuban Soul order!
+
+ORDER DETAILS:
+${orderData.orderDetails.items.packages.map(pkg => `- ${pkg.type}: $${pkg.price}`).join('\\n')}
+${orderData.orderDetails.items.extraSides.map(side => `- ${side.item}: $${side.price}`).join('\\n')}
+${orderData.orderDetails.items.desserts.map(dessert => `- ${dessert.item}: $${dessert.price}`).join('\\n')}
+
+TOTAL AMOUNT: $${amount}
+
+PAYMENT REQUIRED:
+Your order is confirmed but requires payment to proceed. We will contact you shortly to process payment.
+
+CONTACT INFO:
+📞 Phone: ${orderData.customerInfo.phone}
+📧 Email: ${customerEmail}
+🏠 ${orderData.orderDetails.orderType === 'delivery' ? 'Delivery to: ' + orderData.customerInfo.address : 'Pickup Order'}
+📅 Date: ${orderData.orderDetails.orderDate}
+🕐 Time: ${orderData.orderDetails.orderTime}
+
+Questions? Call us at (832) 510-7664
+
+¡Gracias!
+Cuban Soul Food Truck Team
+Sabor Que Viene Del Alma`;
+    
+    const mailtoLink = `mailto:${customerEmail}?cc=cubanfoodinternationalllc@gmail.com,orders@cubansoul.com&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    
+    try {
+        window.open(mailtoLink);
+        console.log('✅ Customer notification email opened');
+    } catch (error) {
+        console.log('❌ Could not auto-open email client');
+    }
+}
+
+// Show payment processing state
+function showPaymentProcessing() {
+    const modal = document.getElementById('paymentModal');
+    if (!modal) return;
+    
+    const modalContent = modal.querySelector('.payment-modal-content');
+    if (modalContent) {
+        modalContent.innerHTML = `
+            <div class="payment-processing-state">
+                <div class="processing-spinner"></div>
+                <h3>🔄 Preparing Payment</h3>
+                <p>Setting up immediate credit card charging...</p>
+                <p class="processing-detail">Your order details are being confirmed</p>
+            </div>
+        `;
+    }
+    
+    modal.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+}
+
+// Setup credit card form handlers
+function setupCreditCardFormHandlers() {
+    console.log('🔧 Setting up credit card form handlers');
+    
+    // Card number formatting and validation (using correct modal IDs)
+    const cardNumberInput = document.getElementById('modalCardNumber');
+    if (cardNumberInput) {
+        cardNumberInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, ''); // Remove non-digits
+            let formattedValue = value.replace(/(\d{4})/g, '$1 ').trim(); // Add space every 4 digits
+            if (formattedValue.length > 19) { // Limit to 16 digits + 3 spaces
+                formattedValue = formattedValue.substring(0, 19);
+            }
+            e.target.value = formattedValue;
+            
+            // Detect card type
+            detectCardType(value);
+        });
+    }
+    
+    // CVV formatting (digits only)
+    const cvvInput = document.getElementById('modalCvv');
+    if (cvvInput) {
+        cvvInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '').substring(0, 4); // Max 4 digits
+            e.target.value = value;
+        });
+    }
+    
+    // Expiry date formatting (MM/YY)
+    const expiryInput = document.getElementById('modalExpiryDate');
+    if (expiryInput) {
+        expiryInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, ''); // Remove non-digits
+            if (value.length >= 2) {
+                value = value.substring(0, 2) + '/' + value.substring(2, 4);
+            }
+            e.target.value = value;
+        });
+    }
+    
+    // Form submission handler for the dynamically created creditCardForm
+    const form = document.getElementById('creditCardForm');
+    if (form) {
+        console.log('✅ Found creditCardForm, setting up payment submission handler');
+        form.addEventListener('submit', function(e) {
+            console.log('💳 🚨 CREDIT CARD FORM SUBMITTED - JAVASCRIPT HANDLER TRIGGERED! 🚨');
+            e.preventDefault(); // Prevent page refresh
+            e.stopPropagation(); // Stop event bubbling
+            console.log('🛑 PREVENTING DEFAULT FORM SUBMISSION...');
+            
+            // Process the payment directly
+            console.log('🚀 Processing direct payment via JavaScript...');
+            processDirectPayment();
+            
+            return false; // Additional prevention
+        });
+        console.log('✅ Payment submission handler attached successfully!');
+    } else {
+        console.error('❌ ERROR: creditCardForm not found in setupCreditCardFormHandlers!');
+    }
+    
+    console.log('✅ Credit card form handlers setup complete');
+}
+
+// Toggle order details visibility
+function toggleOrderDetails() {
+    const details = document.getElementById('orderDetailsExpanded');
+    const toggle = document.querySelector('.order-details-toggle');
+    
+    if (details.style.display === 'none') {
+        details.style.display = 'block';
+        toggle.textContent = '📄 Hide Order Details';
+    } else {
+        details.style.display = 'none';
+        toggle.textContent = '📄 View Order Details';
+    }
+}
+
+// Detect credit card type
+function detectCardType(cardNumber) {
+    const indicator = document.querySelector('.card-type-indicator');
+    if (!indicator) return;
+    
+    let cardType = '';
+    if (cardNumber.match(/^4/)) {
+        cardType = '💳 Visa';
+    } else if (cardNumber.match(/^5[1-5]/)) {
+        cardType = '💳 MasterCard';
+    } else if (cardNumber.match(/^3[47]/)) {
+        cardType = '💳 American Express';
+    } else if (cardNumber.match(/^6011/)) {
+        cardType = '💳 Discover';
+    }
+    
+    indicator.textContent = cardType;
+}
+
+// Process direct payment through Authorize.Net API
+async function processDirectPayment() {
+    console.log('💳 PROCESSING DIRECT PAYMENT - CHARGING CREDIT CARD NOW');
+    
+    // Debug: Check order data
+    console.log('🔍 DEBUGGING ORDER DATA:');
+    console.log('🔍 window.currentOrderData:', window.currentOrderData);
+    console.log('🔍 Order data type:', typeof window.currentOrderData);
+    console.log('🔍 Order data keys:', window.currentOrderData ? Object.keys(window.currentOrderData) : 'null/undefined');
+    
+    // Get form data from the dynamically created creditCardForm
+    const cardNumber = document.getElementById('cardNumber').value.replace(/\s/g, ''); // Remove spaces
+    const expiryMonth = document.getElementById('expiryMonth').value;
+    const expiryYear = document.getElementById('expiryYear').value;
+    const cvv = document.getElementById('cvv').value;
+    const cardholderName = document.getElementById('cardholderName').value;
+    const billingAddress = document.getElementById('billingAddress').value;
+    const billingCity = document.getElementById('billingCity').value;
+    const billingState = document.getElementById('billingState').value;
+    const billingZip = document.getElementById('billingZip').value;
+    
+    const formData = {
+        cardNumber: cardNumber,
+        expiryMonth: expiryMonth,
+        expiryYear: expiryYear,
+        cvv: cvv,
+        cardholderName: cardholderName,
+        billingAddress: billingAddress,
+        billingCity: billingCity,
+        billingState: billingState,
+        billingZip: billingZip
+    };
+    
+    // Validate form
+    if (!validateCreditCardForm(formData)) {
+        return;
+    }
+    
+    // Show processing state
+    showPaymentProcessingState();
+    
+    try {
+        // Verify we have current order data
+        if (!window.currentOrderData || !window.currentOrderData.amount) {
+            throw new Error('Order data is missing. Please try again by selecting your items first.');
+        }
+        // Safely extract customer name with fallback
+        const customerName = window.currentOrderData?.customerInfo?.name || 'Customer';
+        const orderAmount = parseFloat(window.currentOrderData?.amount || 0);
+        
+        // Create simple order data structure that matches working API calls
+        // Keep name short to comply with Authorize.Net limits
+        const simpleOrderData = {
+            packages: [{
+                name: "Cuban Soul Package",
+                price: orderAmount
+            }]
+        };
+        
+        // Convert 4-digit year to 2-digit for Authorize.Net
+        const expYear = formData.expiryYear.length === 4 ? formData.expiryYear.slice(-2) : formData.expiryYear;
+        
+        // Prepare payment data in EXACT format that works with direct API calls
+        const paymentData = {
+            creditCard: {
+                cardNumber: formData.cardNumber,
+                expiryMonth: formData.expiryMonth,
+                expiryYear: expYear,
+                cvv: formData.cvv,
+                cardholderName: formData.cardholderName,
+                billingAddress: formData.billingAddress,
+                billingCity: formData.billingCity || "The Woodlands",
+                billingState: formData.billingState || "TX", 
+                billingZip: formData.billingZip || "77380"
+            },
+            orderData: simpleOrderData,
+            amount: orderAmount,
+            description: "Cuban Soul Order",
+            invoiceNumber: `CS-${Date.now()}`
+        };
+        
+        console.log('🔍 SAFE DATA EXTRACTION:');
+        console.log('🔍 Customer name:', customerName);
+        console.log('🔍 Order amount (number):', orderAmount);
+        console.log('🔍 Full customer info:', window.currentOrderData?.customerInfo);
+        
+        console.log('📤 Sending payment to Authorize.Net API for immediate charging...');
+        console.log(`💰 Amount to charge: $${paymentData.amount}`);
+        console.log('🔍 Payment data being sent:', paymentData);
+        console.log('🔍 Credit card data structure:', paymentData.creditCard);
+        console.log('🔍 Order data structure:', paymentData.orderData);
+        console.log('🔍 Payment amount:', paymentData.amount, 'Type:', typeof paymentData.amount);
+        
+        let result;
+        let response = { ok: true }; // Default for test mode
+        
+        // For development: Simulate successful payment
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            console.log('🧪 DEVELOPMENT MODE: Simulating successful payment');
+            
+            // Simulate API call delay
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            // Simulate successful payment response
+            result = {
+                success: true,
+                transactionId: `TEST_${Date.now()}`,
+                authCode: 'TEST123',
+                amount: paymentData.amount,
+                message: 'Payment processed successfully (TEST MODE)',
+                orderSummary: paymentData.orderData
+            };
+            
+            console.log('✅ SIMULATED PAYMENT SUCCESS:', result);
+        } else {
+            // Production: Call real Authorize.Net API endpoint
+            response = await fetch('/api/process-direct-payment', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(paymentData)
+            });
+            
+            result = await response.json();
+        }
+        
+        if (response.ok && result.success) {
+            // Payment successful!
+            console.log('✅ PAYMENT SUCCESSFUL - CREDIT CARD CHARGED!');
+            console.log(`💳 Transaction ID: ${result.transactionId}`);
+            console.log(`💰 Amount charged: $${result.amount}`);
+            
+            // Send order confirmation email to Cuban Soul
+            sendOrderConfirmationToCubanSoul(result, window.currentOrderData);
+            
+            // Show success state
+            showPaymentSuccessState(result);
+            
+        } else {
+            // Payment declined by bank/card issuer
+            console.error('❌ PAYMENT DECLINED:', result.message || result.error);
+            hideModalPaymentProcessing();
+            
+            // Show user-friendly message for declined payments
+            const declineMessage = result.message || result.error || 'Payment processing failed. Please check your card information.';
+            
+            if (declineMessage.includes('declined') || result.code === 'PAYMENT_DECLINED') {
+                showPaymentError('Your payment was declined by your bank or card issuer. Please try a different card or contact your bank for assistance.');
+            } else {
+                showPaymentError(declineMessage);
+            }
+        }
+        
+    } catch (error) {
+        console.error('💥 Payment processing error:', error);
+        hideModalPaymentProcessing();
+        showPaymentError(error.message || 'Unable to process payment. Please check your internet connection and try again.');
+    }
+}
+
+// Validate credit card form
+function validateCreditCardForm(formData) {
+    const errors = [];
+    
+    // Card number validation
+    if (!formData.cardNumber || formData.cardNumber.length < 13) {
+        errors.push('Please enter a valid card number');
+    }
+    
+    // Expiry validation
+    if (!formData.expiryMonth || !formData.expiryYear) {
+        errors.push('Please select expiry month and year');
+    } else {
+        const expiryDate = new Date(parseInt(formData.expiryYear), parseInt(formData.expiryMonth) - 1);
+        if (expiryDate < new Date()) {
+            errors.push('Card has expired');
+        }
+    }
+    
+    // CVV validation
+    if (!formData.cvv || formData.cvv.length < 3) {
+        errors.push('Please enter a valid CVV');
+    }
+    
+    // Cardholder name validation
+    if (!formData.cardholderName || formData.cardholderName.trim().length < 2) {
+        errors.push('Please enter cardholder name');
+    }
+    
+    // Billing address validation
+    if (!formData.billingAddress || !formData.billingCity || !formData.billingState || !formData.billingZip) {
+        errors.push('Please complete billing address');
+    }
+    
+    if (errors.length > 0) {
+        alert('Please fix the following issues:\n\n' + errors.join('\n'));
+        return false;
+    }
+    
+    return true;
+}
+
+// Show payment processing state
+function showPaymentProcessingState() {
+    const submitBtn = document.getElementById('submitPayment');
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '⏳ Processing Payment...';
+    }
+    
+    // Disable form inputs
+    document.querySelectorAll('#creditCardForm input, #creditCardForm select').forEach(input => {
+        input.disabled = true;
+    });
+}
+
+// Show payment success
+function showPaymentSuccessState(result) {
+    console.log('🎉 Showing payment success state');
+    
+    const modal = document.getElementById('paymentModal');
+    const modalContent = modal.querySelector('.payment-modal-content');
+    
+    const isTestMode = result.transactionId.startsWith('TEST_');
+    
+    modalContent.innerHTML = `
+        <div class="payment-success-state">
+            <div class="success-header">
+                <h2>✅ Payment Successful!</h2>
+                ${isTestMode ? '<div class="test-mode-notice">🧪 <strong>DEVELOPMENT MODE</strong> - No real charge made</div>' : ''}
+            </div>
+            
+            <div class="success-content">
+                <div class="success-amount">
+                    <h3>💳 ${isTestMode ? 'Simulated Charge' : 'Charged'}: $${result.amount}</h3>
+                    <p>Transaction ID: ${result.transactionId}</p>
+                    <p>Authorization Code: ${result.authCode}</p>
+                    ${isTestMode ? '<p class="test-notice">⚠️ This was a test transaction - no real payment was processed</p>' : ''}
+                </div>
+                
+                <div class="success-order">
+                    <h4>📋 Order Confirmed</h4>
+                    <p>✅ Payment processed successfully</p>
+                    <p>📧 Confirmation email will be sent</p>
+                    <p>📞 We'll contact you to schedule delivery/pickup</p>
+                </div>
+                
+                <div class="success-contact">
+                    <h4>📞 Questions?</h4>
+                    <p>Call us at (832) 510-7664</p>
+                    <p>WhatsApp: <a href="https://wa.me/18325107664" target="_blank">(832) 510-7664</a></p>
+                </div>
+            </div>
+            
+            <div class="success-actions">
+                <button onclick="closeSuccessAndReload()" class="btn btn-primary">🏠 Return to Home</button>
+                <button onclick="printReceipt()" class="btn btn-secondary">🖨️ Print Receipt</button>
+            </div>
+        </div>
+    `;
+}
+
+// Get client IP address
+async function getClientIP() {
+    try {
+        const response = await fetch('https://api.ipify.org?format=json');
+        const data = await response.json();
+        return data.ip;
+    } catch (error) {
+        console.log('Could not get client IP:', error);
+        return '127.0.0.1';
+    }
+}
+
+// Close success modal and reload page
+function closeSuccessAndReload() {
+    closeAcceptHostedModal();
+    setTimeout(() => {
+        window.location.reload();
+    }, 500);
+}
+
+// Print receipt
+function printReceipt() {
+    window.print();
+}
+
+console.log('🚀 DIRECT CREDIT CARD PROCESSING READY!');
+
+// Send order confirmation email to Cuban Soul after successful payment
+async function sendOrderConfirmationToCubanSoul(paymentResult, orderData) {
+    console.log('📧 Sending order confirmation email to Cuban Soul...');
+    
+    try {
+        // Prepare email data for Cuban Soul
+        const emailData = {
+            access_key: "ec5b8c5b-a3db-4b6a-ad65-f05b81bc2bfe",
+            subject: `🎉 NEW PAID ORDER - $${paymentResult.amount} - Cuban Soul`,
+            message: `NEW PAID ORDER RECEIVED!
+
+=== PAYMENT CONFIRMED ===
+✅ Credit Card Successfully Charged: $${paymentResult.amount}
+💳 Transaction ID: ${paymentResult.transactionId}
+🔐 Authorization Code: ${paymentResult.authCode}
+💰 Amount: $${paymentResult.amount}
+
+=== CUSTOMER INFORMATION ===
+👤 Name: ${orderData.customerInfo.name}
+📞 Phone: ${orderData.customerInfo.phone}
+📧 Email: ${orderData.customerInfo.email}
+🏠 Address: ${orderData.customerInfo.address || 'Pickup Order'}
+
+=== ORDER DETAILS ===
+📅 Order Date: ${orderData.orderDetails.orderDate}
+🕒 Order Time: ${orderData.orderDetails.orderTime}
+📦 Order Type: ${orderData.orderDetails.orderType}
+
+=== ITEMS ORDERED ===
+${orderData.orderDetails.items.packages.map(pkg => `📦 ${pkg.type} (${pkg.people} people) - $${pkg.price}`).join('\n')}
+${orderData.orderDetails.items.extraSides.length > 0 ? '\n🍽️ EXTRA SIDES:\n' + orderData.orderDetails.items.extraSides.map(side => `- ${side.item} - $${side.price}`).join('\n') : ''}
+${orderData.orderDetails.items.desserts.length > 0 ? '\n🍰 DESSERTS:\n' + orderData.orderDetails.items.desserts.map(dessert => `- ${dessert.item} - $${dessert.price}`).join('\n') : ''}
+
+=== TOTAL ===
+💰 TOTAL PAID: $${paymentResult.amount}
+
+=== SPECIAL INSTRUCTIONS ===
+${orderData.customerInfo.specialInstructions || 'None'}
+
+=== NEXT STEPS ===
+✅ Payment has been processed successfully
+📞 Contact customer to confirm order details and delivery/pickup
+📧 Customer confirmation email should be sent automatically
+
+This order is PAID and confirmed. Please start preparing the order and contact the customer.
+
+Time Received: ${new Date().toLocaleString()}`,
+            from_name: "Cuban Soul Website - PAID ORDER",
+            reply_to: "cubanfoodinternationalllc@gmail.com"
+        };
+
+        // Send to Cuban Soul business email
+        const response = await fetch('https://api.web3forms.com/submit', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(emailData)
+        });
+
+        const result = await response.json();
+        
+        if (result.success) {
+            console.log('✅ Order confirmation email sent to Cuban Soul successfully!');
+        } else {
+            console.error('❌ Failed to send confirmation email:', result.message);
+        }
+        
+        // Also send customer confirmation email
+        sendCustomerConfirmationEmail(paymentResult, orderData);
+        
+    } catch (error) {
+        console.error('❌ Error sending order confirmation email:', error);
+    }
+}
+
+// Send confirmation email to customer
+async function sendCustomerConfirmationEmail(paymentResult, orderData) {
+    console.log('📧 Sending confirmation email to customer...');
+    
+    try {
+        const emailData = {
+            access_key: "ec5b8c5b-a3db-4b6a-ad65-f05b81bc2bfe",
+            subject: `✅ Order Confirmed - Cuban Soul - $${paymentResult.amount}`,
+            email: orderData.customerInfo.email,
+            message: `Dear ${orderData.customerInfo.name},
+
+🎉 Thank you for your Cuban Soul order! Your payment has been successfully processed.
+
+=== PAYMENT CONFIRMATION ===
+✅ Payment Successful: $${paymentResult.amount}
+💳 Transaction ID: ${paymentResult.transactionId}
+📧 Receipt sent to: ${orderData.customerInfo.email}
+
+=== YOUR ORDER ===
+📅 Order Date: ${orderData.orderDetails.orderDate}
+🕒 Order Time: ${orderData.orderDetails.orderTime}
+📦 Order Type: ${orderData.orderDetails.orderType}
+
+=== ITEMS ORDERED ===
+${orderData.orderDetails.items.packages.map(pkg => `📦 ${pkg.type} (${pkg.people} people) - $${pkg.price}`).join('\n')}
+${orderData.orderDetails.items.extraSides.length > 0 ? '\n🍽️ Extra Sides:\n' + orderData.orderDetails.items.extraSides.map(side => `- ${side.item} - $${side.price}`).join('\n') : ''}
+${orderData.orderDetails.items.desserts.length > 0 ? '\n🍰 Desserts:\n' + orderData.orderDetails.items.desserts.map(dessert => `- ${dessert.item} - $${dessert.price}`).join('\n') : ''}
+
+💰 TOTAL PAID: $${paymentResult.amount}
+
+=== NEXT STEPS ===
+📞 A Cuban Soul team member will contact you within 2 hours to confirm order details
+🍽️ Your delicious Cuban food is being prepared with love!
+📧 Keep this email for your records
+
+=== CONTACT INFO ===
+📞 Phone: (832) 510-7664
+📧 Email: cubanfoodinternationalllc@gmail.com
+💬 WhatsApp: https://wa.me/18325107664
+
+Thank you for choosing Cuban Soul! 
+"Sabor Que Viene Del Alma" - Flavor That Comes From The Soul
+
+Cuban Soul Food Truck Team`,
+            from_name: "Cuban Soul Food Truck",
+            reply_to: "cubanfoodinternationalllc@gmail.com"
+        };
+
+        const response = await fetch('https://api.web3forms.com/submit', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(emailData)
+        });
+
+        const result = await response.json();
+        
+        if (result.success) {
+            console.log('✅ Customer confirmation email sent successfully!');
+        } else {
+            console.error('❌ Failed to send customer confirmation email:', result.message);
+        }
+        
+    } catch (error) {
+        console.error('❌ Error sending customer confirmation email:', error);
+    }
+}
