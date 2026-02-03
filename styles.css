@@ -85,6 +85,19 @@ h1 {
     align-items: center;
 }
 
+/* Desktop-only: Left-align navigation menu and adjust order total */
+@media (min-width: 769px) {
+    .navbar .container {
+        justify-content: flex-start;
+        gap: 50px;
+    }
+    
+    .order-total-sidebar {
+        right: 40px;
+        top: 120px; /* Move down to avoid navigation overlap */
+    }
+}
+
 .logo {
     display: flex;
     align-items: center;
@@ -1156,7 +1169,7 @@ html {
 .order-total-sidebar {
     position: fixed;
     top: 20px;
-    right: 20px;
+    right: 30px;
     z-index: 1000;
     height: fit-content;
     width: 300px;
