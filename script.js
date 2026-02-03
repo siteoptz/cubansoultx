@@ -454,38 +454,10 @@ function initializeMenuOrderSystem() {
     }
 }
 
-// Handle package type exclusion logic
+// Handle package selection (now allows multiple package types)
 function handlePackageSelection(selectedCheckbox) {
-    const allPackageCheckboxes = document.querySelectorAll('input[name="package"]');
-    const selectedPackageType = selectedCheckbox.value.includes('cuban-') ? 'cuban' : 'soul';
-    const oppositePackageType = selectedPackageType === 'cuban' ? 'soul' : 'cuban';
-    
-    if (selectedCheckbox.checked) {
-        // Disable opposite package type
-        allPackageCheckboxes.forEach(checkbox => {
-            if (checkbox.value.includes(oppositePackageType + '-')) {
-                checkbox.disabled = true;
-                checkbox.parentElement.style.opacity = '0.5';
-                checkbox.parentElement.style.pointerEvents = 'none';
-            }
-        });
-    } else {
-        // Check if any packages of this type are still selected
-        const sameTypeSelected = Array.from(allPackageCheckboxes).some(checkbox => 
-            checkbox.checked && checkbox.value.includes(selectedPackageType + '-')
-        );
-        
-        // If no packages of this type are selected, re-enable opposite type
-        if (!sameTypeSelected) {
-            allPackageCheckboxes.forEach(checkbox => {
-                if (checkbox.value.includes(oppositePackageType + '-')) {
-                    checkbox.disabled = false;
-                    checkbox.parentElement.style.opacity = '1';
-                    checkbox.parentElement.style.pointerEvents = 'auto';
-                }
-            });
-        }
-    }
+    // No restrictions - allow both Cuban and Soul packages to be selected simultaneously
+    console.log(`📦 Package selection updated: ${selectedCheckbox.value} = ${selectedCheckbox.checked}`);
     
     // Show/hide mobile order total based on package selection
     toggleMobileOrderTotal();
@@ -681,8 +653,8 @@ function updateCheckoutButtonState() {
         checkoutBtn.style.cursor = 'not-allowed';
         
         if (selectedPackages.length === 0) {
-            checkoutBtn.innerHTML = '🛒 Select a Package First';
-            checkoutBtn.title = 'Please select a package to continue';
+            checkoutBtn.innerHTML = '🛒 Select Package(s) First';
+            checkoutBtn.title = 'Please select at least one package to continue';
         } else if (includedSides.length === 0) {
             checkoutBtn.innerHTML = '🛒 Select 2 Sides (0/2)';
             checkoutBtn.title = 'Please select exactly 2 included sides from the main entrees section';
