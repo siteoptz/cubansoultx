@@ -64,64 +64,20 @@ document.addEventListener('DOMContentLoaded', function() {
     if (orderForm) {
         orderForm.addEventListener('submit', function(e) {
             e.preventDefault();
+            console.log('🚀 Review Order & Pay button clicked!');
             
-            // Check if any items are selected (packages, extra sides, or desserts)
-            const selectedPackages = document.querySelectorAll('input[name="package"]:checked');
-            const selectedExtraSides = document.querySelectorAll('select[name="extraSides"]');
-            const selectedDesserts = document.querySelectorAll('select[name="desserts"]');
+            // Get current order summary
+            const orderSummary = getCurrentOrderSummary();
+            console.log('📋 Order summary:', orderSummary);
             
-            // Count actual extra sides and desserts selected
-            let extraSidesCount = 0;
-            selectedExtraSides.forEach(select => {
-                if (select.value && select.value !== '') {
-                    extraSidesCount++;
-                }
-            });
-            
-            let dessertsCount = 0;
-            selectedDesserts.forEach(select => {
-                if (select.value && select.value !== '') {
-                    dessertsCount++;
-                }
-            });
-            
-            // Allow checkout if packages OR extra sides OR desserts are selected
-            if (selectedPackages.length === 0 && extraSidesCount === 0 && dessertsCount === 0) {
-                alert('Please select at least one item (package, extra side, or dessert) before proceeding to checkout.');
-                // Scroll to package selection
-                document.querySelector('.package-selection').scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'center'
-                });
+            // Minimal validation - just check if any items are selected
+            if (orderSummary.total <= 0) {
+                alert('Please select at least one item before proceeding to checkout.');
                 return;
             }
             
-            // Validate package requirements if packages are selected
-            if (selectedPackages.length > 0) {
-                const dressingValidation = validateDressingSelection();
-                if (!dressingValidation.valid) {
-                    alert(dressingValidation.message);
-                    // Scroll to package selection
-                    document.querySelector(dressingValidation.scrollTarget).scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'center'
-                    });
-                    return;
-                }
-                
-                // Validate 2 included sides are selected for packages
-                const includedSides = document.querySelectorAll('input[name="includedSides"]:checked');
-                if (includedSides.length !== 2) {
-                    alert('Please select exactly 2 included sides from the main entrees section when ordering packages.');
-                    document.querySelector('.main-entrees-wide').scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'center'
-                    });
-                    return;
-                }
-            }
-            
-            // Open payment modal if validation passes
+            console.log('✅ Validation passed, opening Authorize.Net modal...');
+            // Open payment modal directly
             openAcceptHostedModal();
         });
     }
