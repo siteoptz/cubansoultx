@@ -96,13 +96,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
-            // Only validate dressing selection if packages are selected
+            // Validate package requirements if packages are selected
             if (selectedPackages.length > 0) {
                 const dressingValidation = validateDressingSelection();
                 if (!dressingValidation.valid) {
                     alert(dressingValidation.message);
                     // Scroll to package selection
                     document.querySelector(dressingValidation.scrollTarget).scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center'
+                    });
+                    return;
+                }
+                
+                // Validate 2 included sides are selected for packages
+                const includedSides = document.querySelectorAll('input[name="includedSides"]:checked');
+                if (includedSides.length !== 2) {
+                    alert('Please select exactly 2 included sides from the main entrees section when ordering packages.');
+                    document.querySelector('.main-entrees-wide').scrollIntoView({
                         behavior: 'smooth',
                         block: 'center'
                     });
