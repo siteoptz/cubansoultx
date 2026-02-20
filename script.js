@@ -68,11 +68,15 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Get current order summary
             const orderSummary = getCurrentOrderSummary();
-            console.log('📋 Order summary:', orderSummary);
+            console.log('📋 Full order summary:', JSON.stringify(orderSummary, null, 2));
+            console.log('💰 Order total:', orderSummary.total);
+            console.log('📦 Has packages:', orderSummary.packages?.length > 0);
+            console.log('🍟 Has extra sides:', orderSummary.extraSides?.length > 0);
+            console.log('🍰 Has desserts:', orderSummary.desserts?.length > 0);
             
             // Minimal validation - just check if any items are selected
             if (orderSummary.total <= 0) {
-                alert('Please select at least one item before proceeding to checkout.');
+                alert(`Please select at least one item before proceeding to checkout. Current total: $${orderSummary.total}`);
                 return;
             }
             
@@ -3608,7 +3612,7 @@ function prepareOrderDataForAcceptHosted(orderSummary) {
             orderDate: formData.orderDate,
             orderTime: formData.orderTime,
             specialInstructions: formData.specialInstructions,
-            packageType: orderSummary.packages ? orderSummary.packages[0].type : 'Unknown',
+            packageType: orderSummary.packages && orderSummary.packages.length > 0 ? orderSummary.packages[0].type : 'A la Carte',
             items: orderSummary
         }
     };
