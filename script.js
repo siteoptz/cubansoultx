@@ -403,11 +403,17 @@ function initializeMenuOrderSystem() {
 
     // Handle extra sides (now dropdowns), add-ons, and desserts with price calculation
     extraSidesSelects.forEach(select => {
-        select.addEventListener('change', updateOrderTotal);
+        select.addEventListener('change', function() {
+            updateOrderTotal();
+            toggleMobileOrderTotal(); // Immediate mobile update
+        });
     });
     
     dessertsSelects.forEach(select => {
-        select.addEventListener('change', updateOrderTotal);
+        select.addEventListener('change', function() {
+            updateOrderTotal();
+            toggleMobileOrderTotal(); // Immediate mobile update
+        });
     });
     
     // Handle add-ons (checkboxes only, no price impact)
