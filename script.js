@@ -258,10 +258,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize mobile order total visibility
     toggleMobileOrderTotal();
     
-    // Initialize order details field and review button state
+    // Initialize order details field
     setTimeout(() => {
         updateOrderDetailsField();
-        updateReviewOrderButtonState();
     }, 500);
     
     // Initialize service fee display (hide by default)
@@ -650,8 +649,6 @@ function updateOrderTotal() {
     // Also update the order details field in the order form
     updateOrderDetailsField();
     
-    // Update review order button state
-    updateReviewOrderButtonState();
 }
 
 // Update checkout button state based on validation requirements
@@ -737,42 +734,6 @@ function updateCheckoutButtonState() {
                 }
             }
         }
-    }
-}
-
-// Update review order button state
-function updateReviewOrderButtonState() {
-    const reviewBtn = document.getElementById('reviewOrderBtn');
-    if (!reviewBtn) return;
-    
-    const selectedPackages = document.querySelectorAll('input[name="package"]:checked');
-    const selectedExtraSides = document.querySelectorAll('select[name="extraSides"]');
-    const selectedDesserts = document.querySelectorAll('select[name="desserts"]');
-    
-    let hasExtraSides = false;
-    selectedExtraSides.forEach(select => {
-        if (select.value && parseInt(select.value) > 0) {
-            hasExtraSides = true;
-        }
-    });
-    
-    let hasDesserts = false;
-    selectedDesserts.forEach(select => {
-        if (select.value && parseInt(select.value) > 0) {
-            hasDesserts = true;
-        }
-    });
-    
-    const hasAnyItems = selectedPackages.length > 0 || hasExtraSides || hasDesserts;
-    
-    if (hasAnyItems) {
-        reviewBtn.disabled = false;
-        reviewBtn.style.opacity = '1';
-        reviewBtn.style.cursor = 'pointer';
-    } else {
-        reviewBtn.disabled = true;
-        reviewBtn.style.opacity = '0.6';
-        reviewBtn.style.cursor = 'not-allowed';
     }
 }
 
