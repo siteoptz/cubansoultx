@@ -2756,7 +2756,7 @@ ${isPaymentOrder ? 'Payment Token: ' + orderData.paymentToken : ''}
         web3FormsData.append('phone', orderData.phone);
         web3FormsData.append('subject', subject);
         web3FormsData.append('message', orderSummaryText);
-        web3FormsData.append('to', 'cubanfoodinternationalllc@gmail.com,antonio@siteoptz.com');
+        web3FormsData.append('to', 'orders@cubansoultx.com,cubanfoodinternationalllc@gmail.com,antonio@siteoptz.com');
         web3FormsData.append('cc', 'antonio@siteoptz.com');
         web3FormsData.append('from_name', 'Cuban Soul Order System');
         web3FormsData.append('replyto', customerEmail);
@@ -4545,6 +4545,7 @@ async function sendOrderConfirmationToCubanSoul(paymentResult, orderData) {
         // Prepare email data for Cuban Soul
         const emailData = {
             access_key: "ec5b8c5b-a3db-4b6a-ad65-f05b81bc2bfe",
+            to_email: "orders@cubansoultx.com,cubanfoodinternationalllc@gmail.com,antonio@siteoptz.com",
             subject: `🎉 NEW PAID ORDER - $${paymentResult.amount} - Cuban Soul`,
             message: `NEW PAID ORDER RECEIVED!
 
@@ -4621,6 +4622,7 @@ async function sendCustomerConfirmationEmail(paymentResult, orderData) {
     try {
         const emailData = {
             access_key: "ec5b8c5b-a3db-4b6a-ad65-f05b81bc2bfe",
+            to_email: "orders@cubansoultx.com,cubanfoodinternationalllc@gmail.com,antonio@siteoptz.com",
             subject: `✅ Order Confirmed - Cuban Soul - $${paymentResult.amount}`,
             email: orderData.customerInfo.email,
             message: `Dear ${orderData.customerInfo.name},
