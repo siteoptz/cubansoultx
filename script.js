@@ -445,14 +445,33 @@ function handlePackageSelection(selectedCheckbox) {
 
 // Toggle mobile order total visibility
 function toggleMobileOrderTotal() {
-    const anyPackageSelected = document.querySelectorAll('input[name="package"]:checked').length > 0;
+    // Check if any items are selected (packages, extra sides, or desserts)
+    const selectedPackages = document.querySelectorAll('input[name="package"]:checked');
+    const selectedExtraSides = document.querySelectorAll('select[name="extraSides"]');
+    const selectedDesserts = document.querySelectorAll('select[name="desserts"]');
+    
+    let hasExtraSides = false;
+    selectedExtraSides.forEach(select => {
+        if (select.value && parseInt(select.value) > 0) {
+            hasExtraSides = true;
+        }
+    });
+    
+    let hasDesserts = false;
+    selectedDesserts.forEach(select => {
+        if (select.value && parseInt(select.value) > 0) {
+            hasDesserts = true;
+        }
+    });
+    
+    const hasAnyItems = selectedPackages.length > 0 || hasExtraSides || hasDesserts;
     const orderTotalSidebar = document.querySelector('.order-total-sidebar');
     const menuMainContent = document.querySelector('.menu-main-content');
     const orderMainContent = document.querySelector('.order-main-content');
     
     // Only apply on mobile (screen width <= 768px)
     if (window.innerWidth <= 768) {
-        if (anyPackageSelected) {
+        if (hasAnyItems) {
             orderTotalSidebar?.classList.add('show-mobile');
             menuMainContent?.classList.add('has-order-total');
             orderMainContent?.classList.add('has-order-total');
