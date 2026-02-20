@@ -247,9 +247,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize mobile order total visibility
     toggleMobileOrderTotal();
     
-    // Initialize order details field
+    // Initialize order details field and review button state
     setTimeout(() => {
         updateOrderDetailsField();
+        updateReviewOrderButtonState();
     }, 500);
     
     // Initialize service fee display (hide by default)
@@ -262,11 +263,27 @@ document.addEventListener('DOMContentLoaded', function() {
     const checkoutBtn = document.getElementById('checkoutBtn');
     if (checkoutBtn) {
         checkoutBtn.addEventListener('click', function() {
-            // Validate package selection first
+            // Check if any items are selected
             const selectedPackages = document.querySelectorAll('input[name="package"]:checked');
-            if (selectedPackages.length === 0) {
-                alert('Please select at least one package before proceeding to checkout.');
-                // Scroll to package selection
+            const selectedExtraSides = document.querySelectorAll('select[name="extraSides"]');
+            const selectedDesserts = document.querySelectorAll('select[name="desserts"]');
+            
+            let hasExtraSides = false;
+            selectedExtraSides.forEach(select => {
+                if (select.value && parseInt(select.value) > 0) {
+                    hasExtraSides = true;
+                }
+            });
+            
+            let hasDesserts = false;
+            selectedDesserts.forEach(select => {
+                if (select.value && parseInt(select.value) > 0) {
+                    hasDesserts = true;
+                }
+            });
+            
+            if (selectedPackages.length === 0 && !hasExtraSides && !hasDesserts) {
+                alert('Please select at least one item (package, extra side, or dessert) before proceeding to checkout.');
                 document.querySelector('.package-selection').scrollIntoView({
                     behavior: 'smooth',
                     block: 'center'
@@ -274,28 +291,29 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
-            // Validate dressing selection
-            const dressingValidation = validateDressingSelection();
-            if (!dressingValidation.valid) {
-                alert(dressingValidation.message);
-                // Scroll to package selection
-                document.querySelector(dressingValidation.scrollTarget).scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'center'
-                });
-                return;
-            }
-            
-            // Validate 2 included sides are selected
-            const includedSides = document.querySelectorAll('input[name="includedSides"]:checked');
-            if (includedSides.length !== 2) {
-                alert('Please select exactly 2 included sides from the main entrees section before proceeding to checkout.');
-                // Scroll to main entrees section
-                document.getElementById('mainEntreesSection').scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'center'
-                });
-                return;
+            // Validate dressing and sides only for packages
+            if (selectedPackages.length > 0) {
+                // Validate dressing selection
+                const dressingValidation = validateDressingSelection();
+                if (!dressingValidation.valid) {
+                    alert(dressingValidation.message);
+                    document.querySelector(dressingValidation.scrollTarget).scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center'
+                    });
+                    return;
+                }
+                
+                // Validate 2 included sides are selected
+                const includedSides = document.querySelectorAll('input[name="includedSides"]:checked');
+                if (includedSides.length !== 2) {
+                    alert('Please select exactly 2 included sides from the main entrees section when ordering packages.');
+                    document.querySelector('.main-entrees-wide').scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center'
+                    });
+                    return;
+                }
             }
             
             const orderSummary = getCurrentOrderSummary();
@@ -340,19 +358,11 @@ function validateDressingSelection() {
         }
     });
     
-    // Check Cuban dressing selection
-    if (hasCubanPackage) {
-        const cubanDressing = document.querySelector('input[name="cuban-dressing"]:checked');
-        if (!cubanDressing) {
-            return { valid: false, message: 'Please select a dressing for your Cuban package', scrollTarget: '.package-selection' };
-        }
-    }
-    
-    // Check Soul dressing selection
-    if (hasSoulPackage) {
-        const soulDressing = document.querySelector('input[name="soul-dressing"]:checked');
-        if (!soulDressing) {
-            return { valid: false, message: 'Please select a dressing for your Soul package', scrollTarget: '.package-selection' };
+    // Check dressing selection for any package
+    if (hasCubanPackage || hasSoulPackage) {
+        const dressingSelected = document.querySelector('input[name="cuban-dressing"]:checked');
+        if (!dressingSelected) {
+            return { valid: false, message: 'Please select a dressing for your package', scrollTarget: '.package-selection' };
         }
     }
     
@@ -628,6 +638,9 @@ function updateOrderTotal() {
     
     // Also update the order details field in the order form
     updateOrderDetailsField();
+    
+    // Update review order button state
+    updateReviewOrderButtonState();
 }
 
 // Update checkout button state based on validation requirements
@@ -638,8 +651,46 @@ function updateCheckoutButtonState() {
     const selectedPackages = document.querySelectorAll('input[name="package"]:checked');
     const includedSides = document.querySelectorAll('input[name="includedSides"]:checked');
     
-    // Check if package is selected and exactly 2 sides are selected
-    const isValid = selectedPackages.length > 0 && includedSides.length === 2;
+    // Check if any items are selected (packages, extra sides, or desserts)
+    const selectedExtraSides = document.querySelectorAll('select[name="extraSides"]');
+    const selectedDesserts = document.querySelectorAll('select[name="desserts"]');
+    
+    let hasExtraSides = false;
+    selectedExtraSides.forEach(select => {
+        if (select.value && parseInt(select.value) > 0) {
+            hasExtraSides = true;
+        }
+    });
+    
+    let hasDesserts = false;
+    selectedDesserts.forEach(select => {
+        if (select.value && parseInt(select.value) > 0) {
+            hasDesserts = true;
+        }
+    });
+    
+    const hasAnyItems = selectedPackages.length > 0 || hasExtraSides || hasDesserts;
+    
+    // Validate package requirements only if packages are selected
+    let packageRequirementsValid = true;
+    let packageValidationMessage = '';
+    if (selectedPackages.length > 0) {
+        const hasDressing = document.querySelector('input[name="cuban-dressing"]:checked');
+        const hasTwoSides = includedSides.length === 2;
+        
+        if (!hasDressing && !hasTwoSides) {
+            packageRequirementsValid = false;
+            packageValidationMessage = 'dressing-and-sides';
+        } else if (!hasDressing) {
+            packageRequirementsValid = false;
+            packageValidationMessage = 'dressing';
+        } else if (!hasTwoSides) {
+            packageRequirementsValid = false;
+            packageValidationMessage = 'sides';
+        }
+    }
+    
+    const isValid = hasAnyItems && packageRequirementsValid;
     
     if (isValid) {
         checkoutBtn.disabled = false;
@@ -652,19 +703,65 @@ function updateCheckoutButtonState() {
         checkoutBtn.style.opacity = '0.6';
         checkoutBtn.style.cursor = 'not-allowed';
         
-        if (selectedPackages.length === 0) {
-            checkoutBtn.innerHTML = '🛒 Select Package(s) First';
-            checkoutBtn.title = 'Please select at least one package to continue';
-        } else if (includedSides.length === 0) {
-            checkoutBtn.innerHTML = '🛒 Select 2 Sides (0/2)';
-            checkoutBtn.title = 'Please select exactly 2 included sides from the main entrees section';
-        } else if (includedSides.length === 1) {
-            checkoutBtn.innerHTML = '🛒 Select 1 More Side (1/2)';
-            checkoutBtn.title = 'Please select 1 more included side from the main entrees section';
-        } else if (includedSides.length > 2) {
-            checkoutBtn.innerHTML = '🛒 Too Many Sides Selected';
-            checkoutBtn.title = 'Please select exactly 2 included sides (you have selected ' + includedSides.length + ')';
+        if (!hasAnyItems) {
+            checkoutBtn.innerHTML = '🛒 Select Items First';
+            checkoutBtn.title = 'Please select at least one item (package, extra side, or dessert) to continue';
+        } else if (selectedPackages.length > 0) {
+            if (packageValidationMessage === 'dressing-and-sides') {
+                checkoutBtn.innerHTML = '🛒 Select Dressing & Sides';
+                checkoutBtn.title = 'Please select a dressing and 2 sides for your package';
+            } else if (packageValidationMessage === 'dressing') {
+                checkoutBtn.innerHTML = '🛒 Select Dressing';
+                checkoutBtn.title = 'Please select a dressing for your package';
+            } else if (packageValidationMessage === 'sides') {
+                if (includedSides.length === 0) {
+                    checkoutBtn.innerHTML = '🛒 Select 2 Sides (0/2)';
+                    checkoutBtn.title = 'Please select exactly 2 included sides from the main entrees section';
+                } else if (includedSides.length === 1) {
+                    checkoutBtn.innerHTML = '🛒 Select 1 More Side (1/2)';
+                    checkoutBtn.title = 'Please select 1 more included side from the main entrees section';
+                } else if (includedSides.length > 2) {
+                    checkoutBtn.innerHTML = '🛒 Too Many Sides Selected';
+                    checkoutBtn.title = 'Please select exactly 2 included sides (you have selected ' + includedSides.length + ')';
+                }
+            }
         }
+    }
+}
+
+// Update review order button state
+function updateReviewOrderButtonState() {
+    const reviewBtn = document.getElementById('reviewOrderBtn');
+    if (!reviewBtn) return;
+    
+    const selectedPackages = document.querySelectorAll('input[name="package"]:checked');
+    const selectedExtraSides = document.querySelectorAll('select[name="extraSides"]');
+    const selectedDesserts = document.querySelectorAll('select[name="desserts"]');
+    
+    let hasExtraSides = false;
+    selectedExtraSides.forEach(select => {
+        if (select.value && parseInt(select.value) > 0) {
+            hasExtraSides = true;
+        }
+    });
+    
+    let hasDesserts = false;
+    selectedDesserts.forEach(select => {
+        if (select.value && parseInt(select.value) > 0) {
+            hasDesserts = true;
+        }
+    });
+    
+    const hasAnyItems = selectedPackages.length > 0 || hasExtraSides || hasDesserts;
+    
+    if (hasAnyItems) {
+        reviewBtn.disabled = false;
+        reviewBtn.style.opacity = '1';
+        reviewBtn.style.cursor = 'pointer';
+    } else {
+        reviewBtn.disabled = true;
+        reviewBtn.style.opacity = '0.6';
+        reviewBtn.style.cursor = 'not-allowed';
     }
 }
 
@@ -708,16 +805,12 @@ function getCurrentOrderSummary() {
         includedSides.push(checkbox.value);
     });
 
-    // Get dressing selections for each package type
+    // Get dressing selection (applies to all packages)
     let dressingSelections = {};
-    const cubanDressing = document.querySelector('input[name="cuban-dressing"]:checked');
-    const soulDressing = document.querySelector('input[name="soul-dressing"]:checked');
+    const selectedDressing = document.querySelector('input[name="cuban-dressing"]:checked');
     
-    if (cubanDressing) {
-        dressingSelections.cuban = cubanDressing.value;
-    }
-    if (soulDressing) {
-        dressingSelections.soul = soulDressing.value;
+    if (selectedDressing) {
+        dressingSelections.all = selectedDressing.value;
     }
 
     // Get selected extra sides from dropdowns
@@ -1334,23 +1427,30 @@ function openPaymentModal_OLD() {
     console.log('Modal element:', modal);
     const orderSummary = getCurrentOrderSummary();
     
-    // Check if packages are selected
-    if (!orderSummary.packages || orderSummary.packages.length === 0) {
-        showPaymentError('Please select at least one package before proceeding to payment');
+    // Check if any items are selected
+    const hasPackages = orderSummary.packages && orderSummary.packages.length > 0;
+    const hasExtraSides = orderSummary.extraSides && orderSummary.extraSides.length > 0;
+    const hasDesserts = orderSummary.desserts && orderSummary.desserts.length > 0;
+    
+    if (!hasPackages && !hasExtraSides && !hasDesserts) {
+        showPaymentError('Please select at least one item (package, extra side, or dessert) before proceeding to payment');
         return;
     }
     
-    // Check if exactly 2 included sides are selected
-    if (orderSummary.includedSides.length !== 2) {
-        showPaymentError('Please select exactly 2 included sides from the main entrees section');
-        return;
-    }
-    
-    // Check if dressing is selected for all packages
-    const dressingValidation = validateDressingSelection();
-    if (!dressingValidation.valid) {
-        showPaymentError(dressingValidation.message);
-        return;
+    // Validate package requirements only if packages are selected
+    if (hasPackages) {
+        // Check if exactly 2 included sides are selected
+        if (orderSummary.includedSides.length !== 2) {
+            showPaymentError('Please select exactly 2 included sides from the main entrees section');
+            return;
+        }
+        
+        // Check if dressing is selected for packages
+        const dressingValidation = validateDressingSelection();
+        if (!dressingValidation.valid) {
+            showPaymentError(dressingValidation.message);
+            return;
+        }
     }
     
     // Populate order summary and customer info in modal
@@ -1697,10 +1797,14 @@ function processModalPayment_DISABLED() {
     
     console.log('Total amount:', totalAmount);
     
-    // Check if packages are selected
-    if (!orderSummary.packages || orderSummary.packages.length === 0) {
-        console.log('ERROR: No packages selected');
-        showPaymentError('Please select at least one package before processing payment');
+    // Check if any items are selected
+    const hasPackages = orderSummary.packages && orderSummary.packages.length > 0;
+    const hasExtraSides = orderSummary.extraSides && orderSummary.extraSides.length > 0;
+    const hasDesserts = orderSummary.desserts && orderSummary.desserts.length > 0;
+    
+    if (!hasPackages && !hasExtraSides && !hasDesserts) {
+        console.log('ERROR: No items selected');
+        showPaymentError('Please select at least one item (package, extra side, or dessert) before processing payment');
         return;
     }
     
@@ -1844,27 +1948,34 @@ function processModalPayment_DISABLED() {
     
     console.log('Total amount:', totalAmount);
 
-    // Check if packages are selected
-    if (!orderSummary.packages || orderSummary.packages.length === 0) {
-        console.log('ERROR: No packages selected');
-        showPaymentError('Please select at least one package before processing payment');
+    // Check if any items are selected
+    const hasPackages = orderSummary.packages && orderSummary.packages.length > 0;
+    const hasExtraSides = orderSummary.extraSides && orderSummary.extraSides.length > 0;
+    const hasDesserts = orderSummary.desserts && orderSummary.desserts.length > 0;
+    
+    if (!hasPackages && !hasExtraSides && !hasDesserts) {
+        console.log('ERROR: No items selected');
+        showPaymentError('Please select at least one item (package, extra side, or dessert) before processing payment');
         return;
     }
     
-    // Check if exactly 2 included sides are selected
-    if (orderSummary.includedSides && orderSummary.includedSides.length !== 2) {
-        console.log('ERROR: Included sides count:', orderSummary.includedSides ? orderSummary.includedSides.length : 0);
-        showPaymentError('Please select exactly 2 included sides from the main entrees section before proceeding with your order.');
-        return;
-    }
-    
-    // Check if dressing is selected for all packages
-    const dressingValidation = validateDressingSelection();
-    if (!dressingValidation.valid) {
-        console.log('WARNING: Dressing validation failed:', dressingValidation.message);
-        console.log('Proceeding with payment despite dressing validation...');
+    // Validate package requirements only if packages are selected
+    if (hasPackages) {
+        // Check if exactly 2 included sides are selected
+        if (orderSummary.includedSides && orderSummary.includedSides.length !== 2) {
+            console.log('ERROR: Included sides count:', orderSummary.includedSides ? orderSummary.includedSides.length : 0);
+            showPaymentError('Please select exactly 2 included sides from the main entrees section before proceeding with your order.');
+            return;
+        }
+        
+        // Check if dressing is selected for packages
+        const dressingValidation = validateDressingSelection();
+        if (!dressingValidation.valid) {
+            console.log('WARNING: Dressing validation failed:', dressingValidation.message);
+            console.log('Proceeding with payment despite dressing validation...');
         // showPaymentError(dressingValidation.message);
         // return;
+        }
     }
 
     if (totalAmount <= 0) {
@@ -3249,7 +3360,6 @@ function resetOrderSystem() {
     
     // Reset dressing selections
     document.querySelectorAll('input[name="cuban-dressing"]').forEach(radio => radio.checked = false);
-    document.querySelectorAll('input[name="soul-dressing"]').forEach(radio => radio.checked = false);
     
     // Reset counters and totals
     const sidesCounter = document.getElementById('sidesCounter');

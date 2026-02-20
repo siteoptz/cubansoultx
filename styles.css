@@ -2085,6 +2085,8 @@ html {
     grid-template-columns: 1fr 1fr;
     gap: 30px;
     margin-top: 20px;
+    width: 100%;
+    max-width: none;
 }
 
 .package-column {
@@ -3295,4 +3297,68 @@ html {
     color: #f39c12;
     font-weight: bold;
     font-style: italic;
+}
+
+/* =====================================================
+   WIDE SECTIONS STYLES
+   ===================================================== */
+
+.served-with-wide {
+    width: 100%;
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 1px solid #e9ecef;
+}
+
+.served-with-wide h6 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 15px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.served-with-wide ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.served-with-wide li {
+    font-size: 1rem;
+    color: #34495e;
+    margin-bottom: 10px;
+    font-weight: 500;
+}
+
+.main-entrees-wide {
+    width: 100%;
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 1px solid #e9ecef;
+}
+
+.main-entrees-wide h4 {
+    font-size: 1.3rem;
+    color: #2c3e50;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.two-column-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+@media (max-width: 768px) {
+    .two-column-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
 }
